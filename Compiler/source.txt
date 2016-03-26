@@ -11,3 +11,172 @@ begin
   writeln(a);
   writeln('Hello, world!');
 end.
+program ex4_5;
+var t,s:real; i,j,n:integer;
+begin
+	S:=0;
+	for n:=1 to 10 do
+	begin
+		t:=1;
+		for j:=1 to n do
+			t:=t*j;
+			S:=S+t;
+	end;
+	writeln('s=',s:0:0);
+end.
+  Program HelloWorld(output);
+  { 
+	  This is a program performing
+	  mathmatics
+  }
+  //Another line of comments
+var a:real;
+begin
+  a := 0.1235;
+  a += 3;
+  writeln(a);
+  writeln('Hello, world!');
+end.
+program ex4_5;
+var t,s:real; i,j,n:integer;
+begin
+	S:=0;
+	for n:=1 to 10 do
+	begin
+		t:=1;
+		for j:=1 to n do
+			t:=t*j;
+			S:=S+t;
+	end;
+	writeln('s=',s:0:0);
+end.
+  Program HelloWorld(output);
+  { 
+	  This is a program performing
+	  mathmatics
+  }
+  //Another line of comments
+var a:real;
+begin
+  a := 0.1235;
+  a += 3;
+  writeln(a);
+  writeln('Hello, world!');
+end.
+program ex4_5;
+var t,s:real; i,j,n:integer;
+begin
+	S:=0;
+	for n:=1 to 10 do
+	begin
+		t:=1;
+		for j:=1 to n do
+			t:=t*j;
+			S:=S+t;
+	end;
+	writeln('s=',s:0:0);
+end.
+  Program HelloWorld(output);
+  { 
+	  This is a program performing
+	  mathmatics
+  }
+  //Another line of comments
+var a:real;
+begin
+  a := 0.1235;
+  a += 3;
+  writeln(a);
+  writeln('Hello, world!');
+end.
+program ex4_5;
+var t,s:real; i,j,n:integer;
+begin
+	S:=0;
+	for n:=1 to 10 do
+	begin
+		t:=1;
+		for j:=1 to n do
+			t:=t*j;
+			S:=S+t;
+	end;
+	writeln('s=',s:0:0);
+end.
+  Program HelloWorld(output);
+  { 
+	  This is a program performing
+	  mathmatics
+  }
+  //Another line of comments
+var a:real;
+begin
+  a := 0.1235;
+  a += 3;
+  writeln(a);
+  writeln('Hello, world!');
+end.
+program ex4_5;
+var t,s:real; i,j,n:integer;
+begin
+	S:=0;
+	for n:=1 to 10 do
+	begin
+		t:=1;
+		for j:=1 to n do
+			t:=t*j;
+			S:=S+t;
+	end;
+	writeln('s=',s:0:0);
+end.
+  Program HelloWorld(output);
+  { 
+	  This is a program performing
+	  mathmatics
+  }
+  //Another line of comments
+var a:real;
+begin
+  a := 0.1235;
+  a += 3;
+  writeln(a);
+  writeln('Hello, world!');
+end.
+program ex4_5;
+var t,s:real; i,j,n:integer;end
+begin
+	S:=0;
+	for n:=1 to 10 do
+	begin
+		t:=1;
+		for j:=1 to n do
+			t:=t*j;
+			S:=S+t;
+	end;
+	writeln('s=',s:0:0);
+end.
+  Program HelloWorld(output);
+  { 
+	  This is a program performing
+	  mathmatics
+  }
+  //Another line of comments
+var a:real;
+begin
+  a := 0.1235;
+  a += 3;
+  writeln(a);
+  writeln('Hello, world!');
+end.
+program ex4_5;
+var t,s:real; i,j,n:integer;
+begin
+	S:=0;
+	for n:=1 to 10 do
+	begin
+		t:=1;
+		for j:=1 to n do
+			t:=t*j;
+			S:=S+t;
+	end;
+	writeln('s=',s:0:0);
+end.

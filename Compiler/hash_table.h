@@ -1,5 +1,5 @@
-#ifndef __HASH_H__
-#define __HASH_H__
+#ifndef __HASH_TABLE_H__
+#define __HASH_TABLE_H__
 
 #include <cstdio>
 #include <cstdlib>
@@ -8,26 +8,26 @@
 const int kHashPJWPrime = 211;
 const int kHashTableSlotNum = kHashPJWPrime;
 
-typedef struct _HashItem
+typedef struct _SymbolItem
 {
-	char* name;
 	TokenType token_type;
-	void* value;
-	//void* extend_attr;
-	struct _HashItem* next_hash_item;
-	_HashItem ()
+	char* name;
+	int* value_addr;
+	void* extend_attr;
+	struct _SymbolItem* next_hash_item;
+	_SymbolItem ()
 	{
 		name = NULL;
-		value = NULL;
-		//value = extend_attr = NULL;
+		value_addr = NULL;
+		extend_attr = NULL;
 		next_hash_item = NULL;
 	};
-} HashItem;
+} SymbolItem;
 
 class HashTable
 {
 private:
-	HashItem* hash_vec_[kHashTableSlotNum];
+	SymbolItem* hash_vec_[kHashTableSlotNum];
 public:
 	HashTable();
 	bool Insert(char* _name, TokenType _token_type);

@@ -15,16 +15,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="general_stack.cc">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="scanner.cpp">
+    <ClCompile Include="main.cc">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="hash.cpp">
+    <ClCompile Include="scanner.cc">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="generalStack.cpp">
+    <ClCompile Include="hash_table.cc">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -32,13 +32,16 @@
     <ClInclude Include="scanner.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="hash.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="generalStack.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="common.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="general_stack.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="symbol_table.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="hash_table.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -47,6 +50,9 @@
       <Filter>资源文件</Filter>
     </Text>
     <Text Include="token.txt">
+      <Filter>资源文件</Filter>
+    </Text>
+    <Text Include="test_program.txt">
       <Filter>资源文件</Filter>
     </Text>
   </ItemGroup>

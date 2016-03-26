@@ -1,5 +1,5 @@
 #include <cstring>
-#include "hash.h"
+#include "hash_table.h"
 
 HashTable::HashTable()
 {
@@ -9,8 +9,8 @@ HashTable::HashTable()
 bool HashTable::Insert(char* _name, TokenType _token_type)
 {
 	unsigned int hash_val = HashPJW(_name);
-	HashItem* head_hash_item = hash_vec_[hash_val];
-	HashItem* new_item = new HashItem;
+	SymbolItem* head_hash_item = hash_vec_[hash_val];
+	SymbolItem* new_item = new SymbolItem;
 	new_item->name = _name;
 	new_item->token_type = _token_type;
 	if (head_hash_item == NULL)
@@ -29,7 +29,7 @@ bool HashTable::Insert(char* _name, TokenType _token_type)
 int HashTable::Find(char* _name)
 {
 	unsigned int hash_val = HashPJW(_name);
-	HashItem* crt_hash_item = hash_vec_[hash_val];
+	SymbolItem* crt_hash_item = hash_vec_[hash_val];
 	while (crt_hash_item != NULL)
 	{
 		if (strcmp(crt_hash_item->name, _name) == 0)

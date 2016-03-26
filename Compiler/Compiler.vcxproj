@@ -76,19 +76,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="generalStack.cpp" />
-    <ClCompile Include="hash.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="scanner.cpp" />
+    <ClCompile Include="general_stack.cc" />
+    <ClCompile Include="hash_table.cc" />
+    <ClCompile Include="main.cc" />
+    <ClCompile Include="scanner.cc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="generalStack.h" />
-    <ClInclude Include="hash.h" />
+    <ClInclude Include="general_stack.h" />
+    <ClInclude Include="hash_table.h" />
     <ClInclude Include="scanner.h" />
     <ClInclude Include="common.h" />
+    <ClInclude Include="symbol_table.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="source.txt" />
+    <Text Include="test_program.txt" />
     <Text Include="token.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
