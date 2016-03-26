@@ -1,17 +1,35 @@
-#ifndef SCANNER_H 
-#define SCANNER_H
+#ifndef __SCANNER_H__ 
+#define __SCANNER_H__
 
-#define TOKEN_MAX_N 128
-#define BUFFER_SIZE 128
+#include <cstdio>
+#include "hash.h"
 
-FILE *fp;
-FILE *tokenOutFp;
-char buf[BUFFER_SIZE];
-char tokenBuf[TOKEN_MAX_N];
-
-//suppose we have less than BUFFERSIZE(128) tokens
-int tokenArr[BUFFER_SIZE]; 
-
-void InitTokenArr();
-void ScanToken();
+class Scanner
+{
+private:
+	FILE* fp_;
+	FILE* tokenOutfp_;
+	int crt_pos_, forward_pos_;
+	char ch_;
+	int line_;
+	char buf_[kBufferSize];
+	char token_buf_[kTokenMaxLen];
+	int token_name_arr_tail_;	
+	void MoveBack();
+	char MoveForwardGetChar();
+	void DealToken(TokenType token_type);
+public:
+	HashTable* token_table_;
+	HashTable* keyword_table_;
+	char token_name_arr_[kTokenNameArrLen];
+	int const_int_arr_[kTokenNameArrLen];
+	float const_real_arr_[kTokenNameArrLen];
+	void Init();
+	void ScanToken();
+};
+template<typename T>
+int GetArrayLen(T& arr)
+{
+	return sizeof(arr) / sizeof(arr[0]);
+}
 #endif
