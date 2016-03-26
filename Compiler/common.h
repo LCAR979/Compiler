@@ -18,9 +18,13 @@ typedef enum
 	T_IDN, T_INT, T_REAL, T_STR
 }TokenType;
 
-const int kReadBufferSize = 64;
+const int kReadBufferSize = 4096;
 const int kTokenMaxLen = 128;
+const int kStringMaxLen = 256;
 const int kTokenNameArrLen = 1024 * 8;
+const int kHashPJWPrime = 211;
+const int kHashTableSlotNum = kHashPJWPrime;
+
 static char* keyword_list[] = {
 	"and", "array", "begin", "case", "const", "div", "do", "downto", "else",
 	"end", "file", "for", "function", "goto", "if", "in", "label",
@@ -28,5 +32,27 @@ static char* keyword_list[] = {
 	"record", "repeat", "set", "then", "to", "type", "until", "var",
 	"while", "with"
 };
+
+typedef struct _SymbolItem
+{
+	TokenType token_type;
+	char* name;
+	int* value_addr;
+	void* extend_attr;
+	struct _SymbolItem* next_hash_item;
+	_SymbolItem()
+	{
+		name = NULL;
+		value_addr = NULL;
+		extend_attr = NULL;
+		next_hash_item = NULL;
+	};
+} SymbolItem;
+typedef struct _KeywordItem
+{
+	char* name;
+	int type;
+	_KeywordItem* next_hash_item;
+}KeywordItem;
 
 #endif

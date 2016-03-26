@@ -24,9 +24,6 @@
     <ClCompile Include="scanner.cc">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="hash_table.cc">
-      <Filter>源文件</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="scanner.h">

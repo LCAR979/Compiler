@@ -1,5 +1,4 @@
 #include "scanner.h"
-
 int main()
 {
 	Scanner* scanner = new Scanner;

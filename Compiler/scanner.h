@@ -2,13 +2,14 @@
 #define __SCANNER_H__
 
 #include <cstdio>
+#include "common.h"
 #include "hash_table.h"
 
 class Scanner
 {
 private:
 	FILE* fp_;
-	FILE* tokenOutfp_;
+	FILE* token_out_fp_;
 
 	int crt_pos_, forward_pos_;
 	int token_name_arr_tail_;
@@ -25,7 +26,6 @@ private:
 
 	void MoveBack();
 	char MoveForwardGetChar();
-	void MoveCrtToForward();
 
 	void DealToken(TokenType token_type);
 	void DealInt(int token_val);
@@ -34,8 +34,8 @@ private:
 	void ScanIdnAndKWord();
 
 public:
-	HashTable* token_table_;
-	HashTable* keyword_table_;
+	HashTable<SymbolItem> token_table_;
+	HashTable<KeywordItem> keyword_table_;
 	char token_name_arr_[kTokenNameArrLen];
 	int const_int_arr_[kTokenNameArrLen];
 	double const_real_arr_[kTokenNameArrLen];

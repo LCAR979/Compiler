@@ -77,7 +77,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="general_stack.cc" />
-    <ClCompile Include="hash_table.cc" />
     <ClCompile Include="main.cc" />
     <ClCompile Include="scanner.cc" />
   </ItemGroup>
