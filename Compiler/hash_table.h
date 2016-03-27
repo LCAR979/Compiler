@@ -10,7 +10,7 @@ template <typename T>
 class HashTable
 {
 private:
-	T* hash_vec_[kHashTableSlotNum];
+	T* hash_vec_[kHashTableSize];
 public:
 	HashTable();
 	bool Insert(char* _name, T* new_node);
@@ -22,7 +22,7 @@ public:
 template <typename T>
 HashTable<T>::HashTable()
 {
-	for (int i = 0; i < kHashTableSlotNum; i++)
+	for (int i = 0; i < kHashTableSize; i++)
 		hash_vec_[i] = NULL;
 }
 

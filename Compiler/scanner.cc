@@ -10,7 +10,7 @@
 
 void ErrHandle()
 {
-
+	
 }
 void GetOptToken()
 {
@@ -80,8 +80,8 @@ void Scanner::DealToken(TokenType token_type)
 	symbol_item->next_hash_item = NULL;
 
 	token_table_.Insert(symbol_item->name, symbol_item);
-	fprintf(token_out_fp_,"(%s, %d)\n",crt_token_name, token_type);
-	printf("(%s, %d)\n", crt_token_name, token_type);
+	fprintf(token_out_fp_, "(%d, %s)\n", token_type, crt_token_name);
+	printf("(%d, %s)\n", token_type, crt_token_name);
 	crt_pos_ = forward_pos_;
 
 }
@@ -118,14 +118,10 @@ void Scanner::Init()
 
 	for (int i = 0; i < GetArrayLen(keyword_list); i++)
 	{
-		KeywordItem* keyword_item = new KeywordItem;
-		keyword_item->name = keyword_list[i];
-		keyword_item->type = TokenType(i);
-		keyword_item->next_hash_item = NULL;
+		KeywordItem* keyword_item = new KeywordItem(keyword_list[i], TokenType(i));
 		keyword_table_.Insert(keyword_item->name, keyword_item);
 	}
-		
-
+	
 	l_read_allow = r_read_allow = true;
 	read_allow_count = 0;
 }

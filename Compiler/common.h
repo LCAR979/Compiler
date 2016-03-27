@@ -23,7 +23,9 @@ const int kTokenMaxLen = 128;
 const int kStringMaxLen = 256;
 const int kTokenNameArrLen = 1024 * 8;
 const int kHashPJWPrime = 211;
-const int kHashTableSlotNum = kHashPJWPrime;
+const int kHashTableSize = kHashPJWPrime;
+const int kStackMaxSize = 1024;
+const int kErrorMaxNum = 1024;
 
 static char* keyword_list[] = {
 	"and", "array", "begin", "case", "const", "div", "do", "downto", "else",
@@ -35,8 +37,8 @@ static char* keyword_list[] = {
 
 typedef struct _SymbolItem
 {
-	TokenType token_type;
 	char* name;
+	TokenType token_type;
 	int* value_addr;
 	void* extend_attr;
 	struct _SymbolItem* next_hash_item;
@@ -47,12 +49,37 @@ typedef struct _SymbolItem
 		extend_attr = NULL;
 		next_hash_item = NULL;
 	};
+	_SymbolItem(char* _name, TokenType _tokenType)
+	{
+		name = _name;
+		token_type = _tokenType;
+		extend_attr = NULL;
+		next_hash_item = NULL;
+	};
 } SymbolItem;
+
 typedef struct _KeywordItem
 {
 	char* name;
 	int type;
 	_KeywordItem* next_hash_item;
+	_KeywordItem(char* _name, int _type)
+	{
+		name = _name;
+		type = _type;
+		next_hash_item = NULL;
+	}
 }KeywordItem;
+
+typedef struct _ErrorItem
+{
+	int line;
+	char* description;
+	_ErrorItem(int _line, char* _description)
+	{
+		line = _line;
+		description = _description;
+	}
+} ErrorItem;
 
 #endif
