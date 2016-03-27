@@ -12,15 +12,15 @@ typedef enum
 	T_ADD, T_SUB, T_MUL, T_ADDE, T_SUBE, T_MULE, T_DIVE, T_POW,
 	T_EQL, T_NEQ, T_GT, T_GTE, T_LT, T_LTE,
 	T_COMMA, T_COLON, T_SEMICL, T_SLASH, T_EXC, T_QUES,
-	T_SHRP, T_PEROID, T_CONT, T_LPAR, T_RPAR, T_LBRKPAR, T_RBRKPAR, T_SINQUOTA,
-	T_DOUQUOTA, T_ASS,
+	T_SHRP, T_PERIOD, T_CONT, T_LPAR, T_RPAR, T_LBRKPAR, T_RBRKPAR, T_SINQUOTA,
+	T_DOUQUOTA, T_ASS, T_DOUBLE_PEROID,
 	//other types
 	T_IDN, T_INT, T_REAL, T_STR
 }TokenType;
 
 const int kReadBufferSize = 4096;
 const int kTokenMaxLen = 128;
-const int kStringMaxLen = 256;
+const int kStringMaxLen = 12;
 const int kTokenNameArrLen = 1024 * 8;
 const int kHashPJWPrime = 211;
 const int kHashTableSize = kHashPJWPrime;
@@ -81,5 +81,24 @@ typedef struct _ErrorItem
 		description = _description;
 	}
 } ErrorItem;
+
+bool static IsHex(char _ch)
+{
+	if ((_ch >= '0' && _ch <= '9') || (_ch >= 'a' && _ch <= 'f') || (_ch >= 'A' && _ch <= 'F'))
+		return true;
+	return false;
+}
+bool static IsOct(char _ch)
+{
+	if (_ch >= '0' && _ch <= '7')
+		return true;
+	return false;
+}
+bool static IsBin(char _ch)
+{
+	if (_ch == '0' || _ch == '1')
+		return true;
+	return false;
+}
 
 #endif

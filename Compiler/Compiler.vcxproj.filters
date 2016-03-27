@@ -9,15 +9,12 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="源文件\资源文件">
+    <Filter Include="资源文件">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="general_stack.cc">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="main.cc">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -44,13 +41,48 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="source.txt">
-      <Filter>源文件\资源文件</Filter>
+      <Filter>资源文件</Filter>
     </Text>
     <Text Include="token.txt">
-      <Filter>源文件\资源文件</Filter>
+      <Filter>资源文件</Filter>
     </Text>
     <Text Include="test_program.txt">
-      <Filter>源文件\资源文件</Filter>
+      <Filter>资源文件</Filter>
     </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="pas\syndicate.pas">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="pas\Tl3.pas">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="pas\TOX_SIMU.PAS">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="pas\TOXIC.PAS">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="pas\traingen.pas">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="pas\truckgen.pas">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="pas\ttwo.pas">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="pas\typer.pas">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="pas\Unit1.pas">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="pas\XML.pas">
+      <Filter>资源文件</Filter>
+    </None>
+    <None Include="pas\最小堆实现的Dijkstra.pas">
+      <Filter>资源文件</Filter>
+    </None>
   </ItemGroup>
 </Project>

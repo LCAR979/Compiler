@@ -8,15 +8,11 @@
 #include "hash_table.h"
 
 
-void ErrHandle()
+void Scanner::ErrorHandle(char* _err_msg)
 {
-	
+	ErrorItem* error_item = new ErrorItem(line_, _err_msg);
+	error_item_arr_[error_item_arr_tail++] = error_item;
 }
-void GetOptToken()
-{
-
-}
-
 
 char Scanner::MoveForwardGetChar()
 {
@@ -37,11 +33,15 @@ char Scanner::MoveForwardGetChar()
 			buf_[kReadBufferSize / 2 + read_bytes] = -1;
 	}
 	forward_pos_ = (++(forward_pos_)) % kReadBufferSize;
-	read_allow_count++;
+	read_allow_count = (read_allow_count + 1) % 11;
 	if (read_allow_count % 10 == 0)
 		l_read_allow = r_read_allow = true;
 	if (buf_[forward_pos_] == -1)
+	{
 		Close();
+		exit(0);
+	}
+		
 	return buf_[forward_pos_];	
 }
 /* Copy buf_[crt_pos_.. forward_pos_]  to token_buf_ */
@@ -56,10 +56,6 @@ void Scanner::DealReal(double token_val)
 }
 void Scanner::DealToken(TokenType token_type)
 {
-	if (token_type == T_END)
-	{
-		printf("++");
-	}
 	char* crt_token_name = (char*)(token_name_arr_ + token_name_arr_tail_);
 	if (forward_pos_ - crt_pos_ > 0)
 	{
@@ -81,13 +77,14 @@ void Scanner::DealToken(TokenType token_type)
 
 	token_table_.Insert(symbol_item->name, symbol_item);
 	fprintf(token_out_fp_, "(%d, %s)\n", token_type, crt_token_name);
-	printf("(%d, %s)\n", token_type, crt_token_name);
 	crt_pos_ = forward_pos_;
 
 }
 
 void Scanner::MoveBack()
 {
+	//if (buf_[forward_pos_ - 1] == '\n')
+	//	line_--;
 	forward_pos_ = (forward_pos_ + kReadBufferSize - 1) % kReadBufferSize;
 	ch_ = buf_[forward_pos_];
 }
@@ -113,20 +110,36 @@ void Scanner::Init()
 	memset(token_name_arr_, 0, sizeof(token_name_arr_));
 
 	token_name_arr_tail_ = const_int_arr_tail = const_real_arr_tail =  0;
-	//token_table_ = new HashTable<SymbolItem>;
-	//keyword_table_ = new HashTable<KeywordItem>;
+	error_item_arr_tail = 0;
 
 	for (int i = 0; i < GetArrayLen(keyword_list); i++)
 	{
 		KeywordItem* keyword_item = new KeywordItem(keyword_list[i], TokenType(i));
 		keyword_table_.Insert(keyword_item->name, keyword_item);
 	}
-	
+	for (int i = 0; i < kErrorMaxNum; i++)
+	{
+		error_item_arr_[i] = NULL;
+	}
+
 	l_read_allow = r_read_allow = true;
 	read_allow_count = 0;
+	line_ = 1;
 }
 void Scanner::Close()
 {
+	int error_count = 0;
+	for (int i = 0; error_item_arr_[i] != NULL; i++)
+	{
+		printf("Line %d, %s\n", error_item_arr_[i]->line, error_item_arr_[i]->description);
+		error_count++;
+	}
+	if (error_count != 0)
+		printf(" Error count %d\n", error_count);
+	else
+	{
+		printf("No token error\n");
+	}	
 	fclose(fp_);
 	fclose(token_out_fp_);
 }
@@ -153,6 +166,50 @@ void Scanner::ScanIdnAndKWord()
 void Scanner::ScanNumber()
 {
 	int res = 0;
+	if (ch_ == '0')
+	{
+		ch_ = MoveForwardGetChar();
+		if (ch_ == 'x' || ch_ == 'X')
+		{
+			ch_ = MoveForwardGetChar();
+			while (IsHex(ch_))
+			{
+				ch_ = MoveForwardGetChar();
+			}
+			MoveBack();
+			DealToken(T_INT);
+			return;
+		}
+		else if (IsOct(ch_))
+		{
+			while (IsOct(ch_))
+			{
+				ch_ = MoveForwardGetChar();
+			}
+			MoveBack();
+			DealToken(T_INT);
+			return;
+		}
+		else if (ch_ == '.')
+		{
+			ch_ = MoveForwardGetChar();
+			if (ch_ == '.')
+			{
+				MoveBack();
+				MoveBack();
+				DealToken(T_INT);
+				MoveForwardGetChar();
+				MoveForwardGetChar();
+				DealToken(T_DOUBLE_PEROID);
+				return;
+			}
+		}
+		else
+		{
+			DealToken(T_INT);
+			return;
+		}
+	}
 	while (isdigit(ch_))
 	{
 		ch_ = MoveForwardGetChar();
@@ -176,8 +233,23 @@ void Scanner::ScanNumber()
 			DealReal(f_res);
 			DealToken(T_REAL);
 		}
+		else if (ch_ == '.')
+		{
+			MoveBack();
+			MoveBack();
+			DealToken(T_INT);
+			MoveForwardGetChar();
+			MoveForwardGetChar();
+			DealToken(T_DOUBLE_PEROID);
+			return;
+		}
 		else
-			ErrHandle();
+		{
+			ErrorHandle("Unexpected character, expecting digit");
+			MoveBack();
+			return;
+		}
+			
 	}
 	else
 	{
@@ -189,6 +261,7 @@ void Scanner::ScanNumber()
 }
 void Scanner::ScanToken()
 {
+	char l_char;
 	while (ch_ != EOF)
 	{
 		ch_ = MoveForwardGetChar();
@@ -267,7 +340,7 @@ void Scanner::ScanToken()
 			DealToken(T_RPAR);
 			break;
 		case '.':
-			DealToken(T_PEROID);
+			DealToken(T_PERIOD);
 			break;
 		case ',':
 			DealToken(T_COMMA);
@@ -278,13 +351,42 @@ void Scanner::ScanToken()
 		case ';':
 			DealToken(T_SEMICL);
 			break;
+		case '[':
+			DealToken(T_LBRKPAR);
+			break;
+		case ']':
+			DealToken(T_RBRKPAR);
+			break;
+		case '<':
+			ch_ = MoveForwardGetChar();
+			if (ch_ == '=')
+				DealToken(T_LTE);
+			else if (ch_ == '>')
+				DealToken(T_NEQ);
+			else
+			{
+				MoveBack();
+				DealToken(T_LT);
+			}
+			break;
+		case '>':
+			ch_ = MoveForwardGetChar();
+			if (ch_ == '=')
+				DealToken(T_GTE);
+			else
+			{
+				MoveBack();
+				DealToken(T_GT);
+			}
+			break;
 		case '/':
 			ch_ = MoveForwardGetChar();
 			if (ch_ == '/')
 			{
-				//Todo Length Restriction
-				while (ch_ != '\n' && ch_ != EOF)
+				while (ch_ != '\n')
 				{
+					if (ch_ == '\n')
+						line_++;
 					ch_ = MoveForwardGetChar();
 				}			
 				crt_pos_ = forward_pos_;
@@ -295,31 +397,22 @@ void Scanner::ScanToken()
 				DealToken(T_SLASH);
 			}		
 			break;	
-		case 34:				//  Double Quotation  " 
+		case '\'':				
+		case '\"':
+			l_char = ch_;
 			ch_ = MoveForwardGetChar();
-			while (ch_ != 34 && ch_ != EOF)
+			while (ch_ != l_char)
 			{
-				if (abs(forward_pos_ - crt_pos_) > kReadBufferSize - 2)
+				if ((forward_pos_ - crt_pos_ + kReadBufferSize) % kReadBufferSize > kStringMaxLen)
 				{
 					crt_pos_ = forward_pos_;
+					ErrorHandle("String too long");
+					break;
 				}
 				ch_ = MoveForwardGetChar();
 			}
-			// Todo :length restriction
-			DealToken(T_STR);
-			// ErrHandle();
-			break;
-		case 39:				 // Singlequotation '
-			ch_ = MoveForwardGetChar();
-			while (ch_ != 39)
-			{
-				if (abs(forward_pos_ - crt_pos_) >  kStringMaxLen)
-				{
-					crt_pos_ = forward_pos_;
-				}
-				ch_ = MoveForwardGetChar();
-			}
-			DealToken(T_STR);
+			if (ch_ == l_char)
+				DealToken(T_STR);
 			break;
 		case '{':
 			while (ch_ != '}')
@@ -327,11 +420,16 @@ void Scanner::ScanToken()
 				if (abs(forward_pos_ - crt_pos_) >  kStringMaxLen)
 				{
 					crt_pos_ = forward_pos_;
+					ErrorHandle("Comment too long");
+					break;
 				}
 				ch_ = MoveForwardGetChar();
 			}
+			if (ch_ == '}')
+				DealToken(T_STR);
+			break;
 		default:
-			ErrHandle();
+			ErrorHandle("Unexpected character, not in character set");
 		}
 	}
 	Close();

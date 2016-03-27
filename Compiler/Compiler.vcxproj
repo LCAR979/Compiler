@@ -76,7 +76,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="general_stack.cc" />
     <ClCompile Include="main.cc" />
     <ClCompile Include="scanner.cc" />
   </ItemGroup>
@@ -91,6 +90,19 @@
     <Text Include="source.txt" />
     <Text Include="test_program.txt" />
     <Text Include="token.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="pas\syndicate.pas" />
+    <None Include="pas\Tl3.pas" />
+    <None Include="pas\TOXIC.PAS" />
+    <None Include="pas\TOX_SIMU.PAS" />
+    <None Include="pas\traingen.pas" />
+    <None Include="pas\truckgen.pas" />
+    <None Include="pas\ttwo.pas" />
+    <None Include="pas\typer.pas" />
+    <None Include="pas\Unit1.pas" />
+    <None Include="pas\XML.pas" />
+    <None Include="pas\最小堆实现的Dijkstra.pas" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

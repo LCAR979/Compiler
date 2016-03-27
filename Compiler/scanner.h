@@ -15,6 +15,8 @@ private:
 	int token_name_arr_tail_;
 	int const_int_arr_tail;
 	int const_real_arr_tail;
+	int error_item_arr_tail;
+
 	char ch_;
 	int line_;
 	char buf_[kReadBufferSize];
@@ -32,6 +34,7 @@ private:
 	void DealReal(double token_val);
 	void ScanNumber();
 	void ScanIdnAndKWord();
+	void ErrorHandle(char* _msg);
 
 public:
 	HashTable<SymbolItem> token_table_;
@@ -39,6 +42,7 @@ public:
 	char token_name_arr_[kTokenNameArrLen];
 	int const_int_arr_[kTokenNameArrLen];
 	double const_real_arr_[kTokenNameArrLen];
+	ErrorItem* error_item_arr_[kErrorMaxNum];
 
 	void Init();
 	void ScanToken();
