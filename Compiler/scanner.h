@@ -10,6 +10,7 @@ class Scanner
 private:
 	FILE* fp_;
 	FILE* token_out_fp_;
+	FILE* error_fp;
 
 	int crt_pos_, forward_pos_;
 	int token_name_arr_tail_;

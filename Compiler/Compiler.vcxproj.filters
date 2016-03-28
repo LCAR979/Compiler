@@ -21,6 +21,9 @@
     <ClCompile Include="scanner.cc">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="parser.cc">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="scanner.h">
@@ -32,10 +35,10 @@
     <ClInclude Include="general_stack.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="symbol_table.h">
+    <ClInclude Include="hash_table.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="hash_table.h">
+    <ClInclude Include="parser.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -49,40 +52,8 @@
     <Text Include="test_program.txt">
       <Filter>资源文件</Filter>
     </Text>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="pas\syndicate.pas">
+    <Text Include="grammer.txt">
       <Filter>资源文件</Filter>
-    </None>
-    <None Include="pas\Tl3.pas">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="pas\TOX_SIMU.PAS">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="pas\TOXIC.PAS">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="pas\traingen.pas">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="pas\truckgen.pas">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="pas\ttwo.pas">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="pas\typer.pas">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="pas\Unit1.pas">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="pas\XML.pas">
-      <Filter>资源文件</Filter>
-    </None>
-    <None Include="pas\最小堆实现的Dijkstra.pas">
-      <Filter>资源文件</Filter>
-    </None>
+    </Text>
   </ItemGroup>
 </Project>

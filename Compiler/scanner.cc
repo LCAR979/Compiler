@@ -3,6 +3,8 @@
 #include <memory.h>
 #include <cstdio>
 #include <cstdlib>
+#include <vector>
+#include <algorithm>
 #include "scanner.h"
 #include "common.h"
 #include "hash_table.h"
@@ -125,6 +127,8 @@ void Scanner::Init()
 	l_read_allow = r_read_allow = true;
 	read_allow_count = 0;
 	line_ = 1;
+
+	
 }
 void Scanner::Close()
 {
@@ -415,9 +419,10 @@ void Scanner::ScanToken()
 				DealToken(T_STR);
 			break;
 		case '{':
+			ch_ = MoveForwardGetChar();
 			while (ch_ != '}')
 			{
-				if (abs(forward_pos_ - crt_pos_) >  kStringMaxLen)
+				if (abs(forward_pos_ - crt_pos_) >  kCommentMaxLen)
 				{
 					crt_pos_ = forward_pos_;
 					ErrorHandle("Comment too long");

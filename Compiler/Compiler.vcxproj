@@ -77,32 +77,21 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cc" />
+    <ClCompile Include="parser.cc" />
     <ClCompile Include="scanner.cc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="general_stack.h" />
     <ClInclude Include="hash_table.h" />
+    <ClInclude Include="parser.h" />
     <ClInclude Include="scanner.h" />
     <ClInclude Include="common.h" />
-    <ClInclude Include="symbol_table.h" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="grammer.txt" />
     <Text Include="source.txt" />
     <Text Include="test_program.txt" />
     <Text Include="token.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="pas\syndicate.pas" />
-    <None Include="pas\Tl3.pas" />
-    <None Include="pas\TOXIC.PAS" />
-    <None Include="pas\TOX_SIMU.PAS" />
-    <None Include="pas\traingen.pas" />
-    <None Include="pas\truckgen.pas" />
-    <None Include="pas\ttwo.pas" />
-    <None Include="pas\typer.pas" />
-    <None Include="pas\Unit1.pas" />
-    <None Include="pas\XML.pas" />
-    <None Include="pas\最小堆实现的Dijkstra.pas" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

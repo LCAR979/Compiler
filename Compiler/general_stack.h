@@ -5,11 +5,11 @@ class GeneralStack
 {
 private:
 	T g_stack[kStackMaxSize];
-	int index = 0;
+	int index = -1;
 public:
 	void Push(T &item)
 	{
-		g_stack[index++] = T;
+		g_stack[++index] = T;
 	}
 	void Pop()
 	{
@@ -21,7 +21,7 @@ public:
 	}
 	bool Empty()
 	{
-		return index == 0;
+		return index == -1;
 	}
 	bool Full()
 	{

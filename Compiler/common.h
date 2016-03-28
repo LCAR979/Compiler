@@ -21,11 +21,13 @@ typedef enum
 const int kReadBufferSize = 4096;
 const int kTokenMaxLen = 128;
 const int kStringMaxLen = 12;
+const int kCommentMaxLen = 12;
 const int kTokenNameArrLen = 1024 * 8;
 const int kHashPJWPrime = 211;
 const int kHashTableSize = kHashPJWPrime;
 const int kStackMaxSize = 1024;
 const int kErrorMaxNum = 1024;
+const int kMaxProductionRightLen = 20;
 
 static char* keyword_list[] = {
 	"and", "array", "begin", "case", "const", "div", "do", "downto", "else",
