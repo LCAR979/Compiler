@@ -1,7 +1,9 @@
 #ifndef __TOKEN_H__
 #define __TOKEN_H__
 
-typedef enum
+#include <stdlib.h>
+
+typedef enum _TokenType
 {
 	// key words
 	T_AND = 0, T_ARRAY, T_BEGIN, T_CASE, T_CONST, T_DIV, T_DO, T_DOWNTO, T_ELSE, T_END,
@@ -11,23 +13,29 @@ typedef enum
 	// operators
 	T_ADD, T_SUB, T_MUL, T_ADDE, T_SUBE, T_MULE, T_DIVE, T_POW,
 	T_EQL, T_NEQ, T_GT, T_GTE, T_LT, T_LTE,
-	T_COMMA, T_COLON, T_SEMICL, T_SLASH, T_EXC, T_QUES,
-	T_SHRP, T_PERIOD, T_CONT, T_LPAR, T_RPAR, T_LBRKPAR, T_RBRKPAR, T_SINQUOTA,
-	T_DOUQUOTA, T_ASS, T_DOUBLE_PEROID,
+	T_COMMA, T_COLON, T_SEMICL, T_SLASH, T_EXC, T_QUESTION,
+	T_SHARP, T_PERIOD, T_CONT, T_LPAR, T_RPAR, T_LBRKPAR, T_RBRKPAR, T_ASS, T_DOUBLE_PEROID,
 	//other types
 	T_IDN, T_INT, T_REAL, T_STR
 }TokenType;
+
+
+
 
 const int kReadBufferSize = 4096;
 const int kTokenMaxLen = 128;
 const int kStringMaxLen = 12;
 const int kCommentMaxLen = 12;
-const int kTokenNameArrLen = 1024 * 8;
-const int kHashPJWPrime = 211;
-const int kHashTableSize = kHashPJWPrime;
-const int kStackMaxSize = 1024;
+const int ktoken_nameArrLen = 1024 * 8;
 const int kErrorMaxNum = 1024;
+
 const int kMaxProductionRightLen = 20;
+const int kMaxProductionNum = 100;
+const int kCharTypeNum = 256;
+const int kVariableTypeNum = 256;
+const int kStateTypeNum = 7;
+
+const int kOutOfRangeException = 1;
 
 static char* keyword_list[] = {
 	"and", "array", "begin", "case", "const", "div", "do", "downto", "else",
@@ -36,6 +44,17 @@ static char* keyword_list[] = {
 	"record", "repeat", "set", "then", "to", "type", "until", "var",
 	"while", "with"
 };
+static char char_set[] = {
+	'a', 'b', '#'
+};
+static char variable_set[] = {
+	'S', 'B'
+};
+
+typedef enum _ParserStateType
+{
+	Acc = 254, Fail = 255, Parsing= 253
+}ParserStateType;
 
 typedef struct _SymbolItem
 {
@@ -43,33 +62,28 @@ typedef struct _SymbolItem
 	TokenType token_type;
 	int* value_addr;
 	void* extend_attr;
-	struct _SymbolItem* next_hash_item;
 	_SymbolItem()
 	{
 		name = NULL;
 		value_addr = NULL;
 		extend_attr = NULL;
-		next_hash_item = NULL;
 	};
-	_SymbolItem(char* _name, TokenType _tokenType)
+	_SymbolItem(char* item_name, TokenType item_tokenType)
 	{
-		name = _name;
-		token_type = _tokenType;
+		name = item_name;
+		token_type = item_tokenType;
 		extend_attr = NULL;
-		next_hash_item = NULL;
 	};
 } SymbolItem;
 
-typedef struct _KeywordItem
+typedef struct keywordItem
 {
 	char* name;
 	int type;
-	_KeywordItem* next_hash_item;
-	_KeywordItem(char* _name, int _type)
+	keywordItem(char* item_name, int item_type)
 	{
-		name = _name;
-		type = _type;
-		next_hash_item = NULL;
+		name = item_name;
+		type = item_type;
 	}
 }KeywordItem;
 
@@ -84,23 +98,28 @@ typedef struct _ErrorItem
 	}
 } ErrorItem;
 
-bool static IsHex(char _ch)
+bool static IsHex(char ch)
 {
-	if ((_ch >= '0' && _ch <= '9') || (_ch >= 'a' && _ch <= 'f') || (_ch >= 'A' && _ch <= 'F'))
+	if ((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F'))
 		return true;
 	return false;
 }
-bool static IsOct(char _ch)
+bool static IsOct(char ch)
 {
-	if (_ch >= '0' && _ch <= '7')
+	if (ch >= '0' && ch <= '7')
 		return true;
 	return false;
 }
-bool static IsBin(char _ch)
+bool static IsBin(char ch)
 {
-	if (_ch == '0' || _ch == '1')
+	if (ch == '0' || ch == '1')
 		return true;
 	return false;
 }
 
+template<typename T>
+int GetArrayLen(T& arr)
+{
+	return sizeof(arr) / sizeof(arr[0]);
+}
 #endif

@@ -1,23 +1,25 @@
-#include "common.h"
+#ifndef __GENERAL_STACK_H__
+#define __GENERAL_STACK_H__
 
 template <typename T>
 class GeneralStack
 {
+	static const int kStackCapacity = 1024;
 private:
-	T g_stack[kStackMaxSize];
+	T g_stack[kStackCapacity];
 	int index = -1;
 public:
-	void Push(T &item)
+	void Push(T item)
 	{
-		g_stack[++index] = T;
+		g_stack[++index] = item;
 	}
 	void Pop()
 	{
 		index--;
 	}
-	T* Top()
+	T Top()
 	{
-		return &g_stack[index];
+		return g_stack[index];
 	}
 	bool Empty()
 	{
@@ -25,6 +27,8 @@ public:
 	}
 	bool Full()
 	{
-		return index == kStackMaxSize - 1;
+		return index == kStackCapacity - 1;
 	}
 };
+
+#endif

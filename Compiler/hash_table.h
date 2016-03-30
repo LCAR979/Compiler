@@ -5,68 +5,79 @@
 #include <cstdlib>
 #include <cstring>
 #include "common.h"
+#include "dynamic_array.h"
 
-template <typename T>
+template <typename Key, typename Val>
 class HashTable
 {
+	template<class Key, class Val>
+	struct HashItem
+	{
+		Key key;
+		Val val;
+		unsigned int hash_val;
+		HashItem(Key key, Val val, unsigned int hash_val) :
+			key(key), val(val), hash_val(hash_val){}
+	};
 private:
-	T* hash_vec_[kHashTableSize];
+	const static int kHashTableCapacity = 4099;	//a prime
+	HashItem<Key, Val>*  hash_vec_[kHashTableCapacity] ;
 public:
 	HashTable();
-	bool Insert(char* _name, T* new_node);
-	T* Find(char* _name);
-	unsigned int HashPJW(char* _name);
-	unsigned int HashBKDR(char* _name);
+	unsigned int HashPJW(Key key);
+	unsigned int HashBKDR(Key key);
+	bool Insert(Key key, Val new_node);
+	Val Find(Key key);
+	unsigned int Hash(Key key);
 };
 
-template <typename T>
-HashTable<T>::HashTable()
+template <typename Key, typename Val>
+HashTable<Key, Val>::HashTable()
 {
-	for (int i = 0; i < kHashTableSize; i++)
+	for (size_t i = 0; i < kHashTableCapacity; i++)
 		hash_vec_[i] = NULL;
 }
 
-template <typename T>
-bool HashTable<T>::Insert(char* _name, T* new_item)
+template <typename Key, typename Val>
+bool HashTable<Key, Val>::Insert(Key key, Val val)
 {
-	unsigned int hash_val = HashPJW(_name);
-	T* head_hash_item = hash_vec_[hash_val];
-
-	if (head_hash_item == NULL)
+	unsigned int hash_val = Hash(key), index = hash_val;
+	HashItem<Key, Val>* new_item = new HashItem<Key, Val>(key, val, hash_val);
+	if (NULL == Find(key))
 	{
-		hash_vec_[hash_val] = new_item;
+		while (hash_vec_[index] != NULL && hash_vec_[index]->hash_val != hash_val)
+			index++;
+		hash_vec_[index] = new_item;
 		return true;
-	}
-	if (head_hash_item->next_hash_item != NULL)
-	{
-		new_item->next_hash_item = head_hash_item->next_hash_item;
-	}
-	head_hash_item->next_hash_item = new_item;
-	return true;
+	}	
+	return false;
 }
 
-template <typename T>
-T* HashTable<T>::Find(char* _name)
+template <typename Key, typename Val>
+Val HashTable<Key, Val>::Find(Key key) 
 {
-	unsigned int hash_val = HashPJW(_name);
-	T* crt_hash_item = hash_vec_[hash_val];
-	while (crt_hash_item != NULL)
-	{
-		if (strcmp(crt_hash_item->name, _name) == 0)
-			return crt_hash_item;
-		else
-			crt_hash_item = crt_hash_item->next_hash_item;
+	size_t hash_val = Hash(key), index = hash_val;
+	while (hash_vec_[index] != NULL){
+		if (hash_vec_[index]->hash_val == hash_val)
+		{
+			return (hash_vec_[index]->val);
+		}
+		index++;
 	}
-	return NULL;
+	return (Val)NULL;
 }
-
-template <typename T>
-unsigned int HashTable<T>::HashPJW(char* _name)
+template <typename Key, typename Val>
+unsigned int HashTable<Key, Val>::Hash(Key key)
+{
+	return HashBKDR(key);
+}
+template <typename Key, typename Val>
+unsigned int HashTable<Key, Val>::HashPJW(Key key)
 {
 
 	char* p;
 	unsigned int h = 0, g;
-	for (p = _name; *p != '\0'; p++)
+	for (p = key; *p != '\0'; p++)
 	{
 		h = (h << 4) + (*p);
 		if (g = h & 0xf0000000)
@@ -75,19 +86,24 @@ unsigned int HashTable<T>::HashPJW(char* _name)
 			h = h^g;
 		}
 	}
-	return h % kHashPJWPrime;
+	return h % kHashTableCapacity;
 }
 
-template <typename T>
-unsigned int HashTable<T>::HashBKDR(char* _name)
+template <typename Key, typename Val>
+unsigned int HashTable<Key, Val>::HashBKDR(Key key)
 {
 	unsigned int seed = 13131;
 	unsigned int hash = 0;
-	while (*_name)
+	while (*key)
 	{
-		hash = hash * seed + (*_name++);
+		hash = hash * seed + (*key++);
 	}
-	return (hash & 0x7fffffff);
+	return (hash & 0x7fffffff)  % kHashTableCapacity;
 }
 
+
+//template <typename Key, typename Val>
+//Val & HashTable<Key, Val>::operator [] (Key key) 
+//{
+//}
 #endif

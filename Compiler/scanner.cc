@@ -13,31 +13,31 @@
 void Scanner::ErrorHandle(char* _err_msg)
 {
 	ErrorItem* error_item = new ErrorItem(line_, _err_msg);
-	error_item_arr_[error_item_arr_tail++] = error_item;
+	error_item_arr_[error_item_arr_tail_++] = error_item;
 }
 
 char Scanner::MoveForwardGetChar()
 {
 	size_t read_bytes = 0;
 	
-	if ((forward_pos_ == -1 || forward_pos_ == kReadBufferSize - 1) && l_read_allow )
+	if ((forward_pos_ == -1 || forward_pos_ == kReadBufferSize - 1) && l_read_allow_ )
 	{
 		read_bytes = fread(buf_, sizeof(char), kReadBufferSize / 2, fp_);
-		l_read_allow = false;
+		l_read_allow_ = false;
 		if (read_bytes < kReadBufferSize / 2)
 			buf_[read_bytes] = -1;
 	}		 
-	else if ((forward_pos_ == kReadBufferSize / 2 - 1)&& r_read_allow )
+	else if ((forward_pos_ == kReadBufferSize / 2 - 1)&& r_read_allow_ )
 	{
 		read_bytes = fread(buf_ + kReadBufferSize / 2, sizeof(char), kReadBufferSize / 2, fp_);
-		r_read_allow = false;
+		r_read_allow_ = false;
 		if (read_bytes < kReadBufferSize / 2)
 			buf_[kReadBufferSize / 2 + read_bytes] = -1;
 	}
 	forward_pos_ = (++(forward_pos_)) % kReadBufferSize;
-	read_allow_count = (read_allow_count + 1) % 11;
-	if (read_allow_count % 10 == 0)
-		l_read_allow = r_read_allow = true;
+	read_allow_count_ = (read_allow_count_ + 1) % 11;
+	if (read_allow_count_ % 10 == 0)
+		l_read_allow_ = r_read_allow_ = true;
 	if (buf_[forward_pos_] == -1)
 	{
 		Close();
@@ -47,13 +47,13 @@ char Scanner::MoveForwardGetChar()
 	return buf_[forward_pos_];	
 }
 /* Copy buf_[crt_pos_.. forward_pos_]  to token_buf_ */
-void Scanner::DealInt(int token_val)
+void Scanner::DealInt(int tokenval)
 {
-	const_int_arr_[const_int_arr_tail++] = token_val;
+	const_int_arr_[const_int_arr_tail_++] = tokenval;
 }
-void Scanner::DealReal(double token_val)
+void Scanner::DealReal(double tokenval)
 {
-	const_real_arr_[const_real_arr_tail++] = token_val;
+	const_real_arr_[const_real_arr_tail_++] = tokenval;
 
 }
 void Scanner::DealToken(TokenType token_type)
@@ -75,7 +75,6 @@ void Scanner::DealToken(TokenType token_type)
 	SymbolItem* symbol_item = new SymbolItem;
 	symbol_item->name = crt_token_name;
 	symbol_item->token_type = token_type;
-	symbol_item->next_hash_item = NULL;
 
 	token_table_.Insert(symbol_item->name, symbol_item);
 	fprintf(token_out_fp_, "(%d, %s)\n", token_type, crt_token_name);
@@ -111,21 +110,18 @@ void Scanner::Init()
 	memset(buf_, 0, sizeof(buf_));
 	memset(token_name_arr_, 0, sizeof(token_name_arr_));
 
-	token_name_arr_tail_ = const_int_arr_tail = const_real_arr_tail =  0;
-	error_item_arr_tail = 0;
+	token_name_arr_tail_ = const_int_arr_tail_ = const_real_arr_tail_ =  0;
+	error_item_arr_tail_ = 0;
 
 	for (int i = 0; i < GetArrayLen(keyword_list); i++)
-	{
-		KeywordItem* keyword_item = new KeywordItem(keyword_list[i], TokenType(i));
-		keyword_table_.Insert(keyword_item->name, keyword_item);
-	}
+		keyword_table_.Insert(keyword_list[i], TokenType(i));
 	for (int i = 0; i < kErrorMaxNum; i++)
 	{
 		error_item_arr_[i] = NULL;
 	}
 
-	l_read_allow = r_read_allow = true;
-	read_allow_count = 0;
+	l_read_allow_ = r_read_allow_ = true;
+	read_allow_count_ = 0;
 	line_ = 1;
 
 	
@@ -133,9 +129,11 @@ void Scanner::Init()
 void Scanner::Close()
 {
 	int error_count = 0;
+	error_fp_ = fopen("error.txt", "w");
 	for (int i = 0; error_item_arr_[i] != NULL; i++)
 	{
 		printf("Line %d, %s\n", error_item_arr_[i]->line, error_item_arr_[i]->description);
+		fprintf(error_fp_, "Line %d, %s\n", error_item_arr_[i]->line, error_item_arr_[i]->description);
 		error_count++;
 	}
 	if (error_count != 0)
@@ -146,12 +144,13 @@ void Scanner::Close()
 	}	
 	fclose(fp_);
 	fclose(token_out_fp_);
+	fclose(error_fp_);
 }
 void Scanner::ScanIdnAndKWord()
 {
 	char tmp_token_name[kTokenMaxLen];
 	int tmp_token_name_tail = 0;
-	KeywordItem* keyword_item;
+	int token_type;
 	memset(tmp_token_name, 0, sizeof(tmp_token_name));
 	while (isalpha(ch_) || isdigit(ch_) || ch_ == '$' || ch_ == '_')
 	{
@@ -160,9 +159,8 @@ void Scanner::ScanIdnAndKWord()
 	}
 
 	MoveBack();
-	keyword_item = keyword_table_.Find(tmp_token_name);
-	if (keyword_item != NULL)
-		DealToken((TokenType)keyword_item->type);
+	if ((token_type = keyword_table_.Find(tmp_token_name)) != NULL)
+		DealToken((TokenType)token_type);
 	else
 		DealToken(T_IDN);
 	return;
@@ -265,7 +263,7 @@ void Scanner::ScanNumber()
 }
 void Scanner::ScanToken()
 {
-	char l_char;
+	char lchar;
 	while (ch_ != EOF)
 	{
 		ch_ = MoveForwardGetChar();
@@ -403,9 +401,9 @@ void Scanner::ScanToken()
 			break;	
 		case '\'':				
 		case '\"':
-			l_char = ch_;
+			lchar = ch_;
 			ch_ = MoveForwardGetChar();
-			while (ch_ != l_char)
+			while (ch_ != lchar)
 			{
 				if ((forward_pos_ - crt_pos_ + kReadBufferSize) % kReadBufferSize > kStringMaxLen)
 				{
@@ -415,7 +413,7 @@ void Scanner::ScanToken()
 				}
 				ch_ = MoveForwardGetChar();
 			}
-			if (ch_ == l_char)
+			if (ch_ == lchar)
 				DealToken(T_STR);
 			break;
 		case '{':
@@ -431,7 +429,7 @@ void Scanner::ScanToken()
 				ch_ = MoveForwardGetChar();
 			}
 			if (ch_ == '}')
-				DealToken(T_STR);
+				crt_pos_ = forward_pos_;
 			break;
 		default:
 			ErrorHandle("Unexpected character, not in character set");
