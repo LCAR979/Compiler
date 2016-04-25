@@ -43,16 +43,25 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="source.txt">
+    <Text Include="res\action.txt">
       <Filter>资源文件</Filter>
     </Text>
-    <Text Include="token.txt">
+    <Text Include="res\goto.txt">
       <Filter>资源文件</Filter>
     </Text>
-    <Text Include="test_program.txt">
+    <Text Include="res\source.txt">
       <Filter>资源文件</Filter>
     </Text>
-    <Text Include="grammer.txt">
+    <Text Include="output\error.txt">
+      <Filter>资源文件</Filter>
+    </Text>
+    <Text Include="output\token.txt">
+      <Filter>资源文件</Filter>
+    </Text>
+    <Text Include="output\log.txt">
+      <Filter>资源文件</Filter>
+    </Text>
+    <Text Include="res\grammer_number_transed.txt">
       <Filter>资源文件</Filter>
     </Text>
   </ItemGroup>

@@ -5,113 +5,105 @@
 
 void Parser::Init()
 {
-	grammer_fp_ = fopen("grammer.txt", "r");
-	production_table_tail_ = 0;
-	
-	char ll;
-	char rr[kStringMaxLen];
-	memset(rr, 0, sizeof(rr));
-	while (fscanf(grammer_fp_, "%c,%s", &ll, &rr) == 2)
+	FillProductionTable();
+	FillDriveTable();
+}
+void Parser::FillProductionTable ()
+{
+	FILE* fp = fopen("res\\grammer_number_transed.txt", "r");
+	if (fp == NULL)
 	{
-		Production* pr = new Production(ll, rr);
-		production_table_[production_table_tail_++] = pr;
-		fgetc(grammer_fp_);
-		memset(rr, 0, sizeof(rr));
+		fprintf(stderr, "Error opening grammer file.\n");
+		exit(-1);
 	}
-	fclose(grammer_fp_);
-
-	for (int i = 0; i < GetArrayLen(char_set); i++)
-		char_table_.Insert(&char_set[i], i);
-	for (int i = 0; i < GetArrayLen(variable_set); i++)
-		variable_table_.Insert(&variable_set[i], i);
-
-}
-int Parser::Decode(HashTable<char*, int> table, char* ch)
-{
-	return table.Find(ch);
-}
-
-void Parser::FillActionTable()
-{
-	//1<<31 + shift_to_state = action
-	// shift to state 4 ->  1<<31 + 110B = 0x80000004
-	action_table_[0]['a'] = 0x80000003;
-	action_table_[0]['b'] = 0x80000004;
-	action_table_[1]['#'] = Acc;
-	action_table_[2]['a'] = 0x80000003;
-	action_table_[2]['b'] = 0x80000004;
-	action_table_[3]['a'] = 0x80000003;
-	action_table_[3]['b'] = 0x80000004;
-
-	action_table_[4]['a'] = 0x0003;
-	action_table_[4]['b'] = 0x0003;
-	action_table_[4]['#'] = 0x0003;
-
-	action_table_[5]['a'] = 1;
-	action_table_[5]['b'] = 1;
-	action_table_[5]['#'] = 1;
-
-	action_table_[6]['a'] = 2;
-	action_table_[6]['b'] = 2;
-	action_table_[6]['#'] = 2;
-}
-void Parser::FillGotoTable()
-{
-	goto_table_[0]['S'] = 1;
-	goto_table_[0]['B'] = 2;
-	goto_table_[2]['B'] = 5;
-	goto_table_[3]['B'] = 6;
-}
-int ShouldShift(int action)
-{
-	//shift: 1<<31 + shift_to_state = action
-	//reduce: no of the production to use
-
-	if (action & (1 << 31))		
-		return 1;
-	else
-		return 0;
-}
-void Parser::Startup()
-{
-	char test_case[kStringMaxLen] = "bab#\0";
-	char* p = test_case;
-	int action, state_goto;
-	Production* production_to_use;
-	state_stack_.Push(0);
-	while (*p != '\0' && state_stack_.Top() != Acc && state_stack_.Top() != Fail)
+	int num;
+	int row_index = -1, col_index = -1;
+	memset(production_table_, 0, sizeof(production_table_));
+	while (fscanf(fp, "%d", &num)== 1)
 	{
-		action = action_table_[state_stack_.Top()][*p];
+		col_index = -1;
+		production_table_[++row_index][++col_index] = num;
+		while (fscanf(fp, "%d", &num) == 1)
+			production_table_[row_index][++col_index] = num;
+		fgetc(fp);
+	}
+	fclose(fp);
+}
+
+void Parser::FillDriveTable()
+{
+	// shift -> positive numbers, reduce -> negative numbers
+	FILE* fp = fopen("res\\drive_table.txt", "r");
+	if (fp == NULL)
+	{
+		fprintf(stderr, "Error opening action file.\n");
+		exit(-1);
+	}
+	int i, j, val;
+	memset(drive_table_, Fail, sizeof(drive_table_));
+	while (fscanf(fp, "%d,%d,%d", &i, &j, &val) == 3)
+		drive_table_[i][j] = val;
+	fclose(fp);
+}
+
+/*
+grammer production # encodes form 0,
+shift -> positive 
+reduce -> negative
+state from 0
+
+*/
+void Parser::Startup(std::vector<TokenItem*>& token_list)
+{
+	int token_list_index = 0;
+	TokenType crt_token = token_list[token_list_index]->token_type;
+	int action, state_goto;
+	state_stack_.Push(0);
+	while (crt_token && state_stack_.Top() != Acc && state_stack_.Top() != Fail)
+	{
+		action = drive_table_[state_stack_.Top()][crt_token];
 		if (action == Acc)
 		{
 			state_stack_.Push(Acc);
 			break;
-		}		
-		if (action & (1 << 31))
-		{
-			state_stack_.Push(action - (1 << 31));
-			char_stack_.Push((int)*p);		
-			printf("Shift in state %d and char %c \n", state_stack_.Top(), *p);
-			p++;
 		}
-		else if (action >= 0 )
+		if (action == Fail)
 		{
-			production_to_use = production_table_[action - 1];			
-			char *tmp = production_to_use->r_part;
-			while (*tmp != '\0' && !char_stack_.Empty())
+			state_stack_.Push(Fail);
+			fprintf(stderr, "Error parsing grammer file\n");
+			break;
+		}
+		if (action > 0)
+		{
+			state_stack_.Push(action);
+			var_stack_.Push(crt_token);		
+			printf("Shift in state %d and var %d \n", state_stack_.Top(), crt_token);
+			crt_token = token_list[++token_list_index]->token_type;
+		}
+		else if (action < 0 )
+		{			
+			action *= -1;
+			int tmp = 1;
+			while (production_table_[action][tmp] != 0 && !var_stack_.Empty() && !state_stack_.Empty())
 			{
-				char_stack_.Pop();
+				var_stack_.Pop();
 				state_stack_.Pop();
 				tmp++;
 			}
-			char_stack_.Push((int)(production_to_use->l_part));		//suppose lpart is always char?
-			state_goto = goto_table_[state_stack_.Top()][(int)char_stack_.Top()];	// always operateable?
+			
+			var_stack_.Push(production_table_[action][0]);		//suppose lpart is always char?
+			state_goto = drive_table_[state_stack_.Top()][var_stack_.Top()];	// always operateable?
+			if (state_goto == -1)
+			{
+				fprintf(stderr, "Trapped in error state \n");
+				break;
+			}			
 			state_stack_.Push(state_goto);
-			printf("Reduce to char %c, go to state %d\n", (int)char_stack_.Top(), state_stack_.Top());
+			printf("Reduced using No. %d production, go to state %d\n", action, state_stack_.Top());
 		}
 		else
 		{
-			ErrorHandle();
+			fprintf(stderr, "Action = 0 \n");
 			break;
 		}
 	}

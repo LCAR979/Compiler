@@ -90,10 +90,13 @@
     <ClInclude Include="common.h" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="grammer.txt" />
-    <Text Include="source.txt" />
-    <Text Include="test_program.txt" />
-    <Text Include="token.txt" />
+    <Text Include="output\error.txt" />
+    <Text Include="output\log.txt" />
+    <Text Include="output\token.txt" />
+    <Text Include="res\action.txt" />
+    <Text Include="res\goto.txt" />
+    <Text Include="res\grammer_number_transed.txt" />
+    <Text Include="res\source.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

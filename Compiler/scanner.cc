@@ -9,11 +9,9 @@
 #include "common.h"
 #include "hash_table.h"
 
-
-void Scanner::ErrorHandle(char* _err_msg)
+void Scanner::ErrorHandle(char* err_msg)
 {
-	ErrorItem* error_item = new ErrorItem(line_, _err_msg);
-	error_item_arr_[error_item_arr_tail_++] = error_item;
+	error_list_.push_back(new ErrorItem(line_, err_msg));
 }
 
 char Scanner::MoveForwardGetChar()
@@ -39,13 +37,10 @@ char Scanner::MoveForwardGetChar()
 	if (read_allow_count_ % 10 == 0)
 		l_read_allow_ = r_read_allow_ = true;
 	if (buf_[forward_pos_] == -1)
-	{
-		Close();
-		exit(0);
-	}
-		
+		return EOF;		
 	return buf_[forward_pos_];	
 }
+
 /* Copy buf_[crt_pos_.. forward_pos_]  to token_buf_ */
 void Scanner::DealInt(int tokenval)
 {
@@ -56,48 +51,55 @@ void Scanner::DealReal(double tokenval)
 	const_real_arr_[const_real_arr_tail_++] = tokenval;
 
 }
+int* Scanner::InstallID(char* crt_token_name, TokenType token_type)
+{
+	token_name_arr_[token_name_arr_tail_++] = '\0';
+	SymbolItem* symbol_item = new SymbolItem(crt_token_name, token_type);
+	symbol_table_.Insert(symbol_item->name, symbol_item);
+	return (int*)symbol_table_.FindAddr(crt_token_name);
+}
 void Scanner::DealToken(TokenType token_type)
 {
-	char* crt_token_name = (char*)(token_name_arr_ + token_name_arr_tail_);
+	char crt_token_name[kTokenMaxLen];
+	memset(crt_token_name, 0, sizeof(crt_token_name));
 	if (forward_pos_ - crt_pos_ > 0)
 	{
 		memcpy(crt_token_name, (char*)(buf_ + crt_pos_ + 1), forward_pos_ - crt_pos_);
-		token_name_arr_tail_ += (forward_pos_ - crt_pos_);
-	}		
+	}
 	else
 	{
-		memcpy(crt_token_name, (char*)(buf_ + crt_pos_ + 1), kReadBufferSize -1 - crt_pos_);
-		memcpy(crt_token_name + kReadBufferSize -1 - crt_pos_,
+		memcpy(crt_token_name, (char*)(buf_ + crt_pos_ + 1), kReadBufferSize - 1 - crt_pos_);
+		memcpy(crt_token_name + kReadBufferSize - 1 - crt_pos_,
 			(char*)(buf_), forward_pos_ + 1);
-		token_name_arr_tail_ += (kReadBufferSize + forward_pos_ - crt_pos_);
 	}
-	token_name_arr_[token_name_arr_tail_ ++] = '\0';
-	SymbolItem* symbol_item = new SymbolItem;
-	symbol_item->name = crt_token_name;
-	symbol_item->token_type = token_type;
-
-	token_table_.Insert(symbol_item->name, symbol_item);
+	if (token_type == T_ID)
+	{
+		memcpy(token_name_arr_ + token_name_arr_tail_, crt_token_name, strlen(crt_token_name));
+		int* addr = InstallID(crt_token_name, token_type);
+		token_list_.push_back(new TokenItem(token_type, addr));
+	}
+	else
+	{
+		token_list_.push_back(new TokenItem(token_type));
+	}
 	fprintf(token_out_fp_, "(%d, %s)\n", token_type, crt_token_name);
 	crt_pos_ = forward_pos_;
-
 }
 
 void Scanner::MoveBack()
 {
-	//if (buf_[forward_pos_ - 1] == '\n')
-	//	line_--;
 	forward_pos_ = (forward_pos_ + kReadBufferSize - 1) % kReadBufferSize;
 	ch_ = buf_[forward_pos_];
 }
 void Scanner::Init()
 {
-	fp_ = fopen("source.txt", "r");
+	fp_ = fopen("res\\source.txt", "r");
 	if (fp_ == NULL)
 	{
 		fprintf(stderr, "Error opening source file.\n");
 		exit(-1);
 	}
-	token_out_fp_ = fopen("token.txt", "w");
+	token_out_fp_ = fopen("output\\token.txt", "w");
 	if (token_out_fp_ == NULL)
 	{
 		fprintf(stderr, "Error opening token file.\n");
@@ -111,31 +113,25 @@ void Scanner::Init()
 	memset(token_name_arr_, 0, sizeof(token_name_arr_));
 
 	token_name_arr_tail_ = const_int_arr_tail_ = const_real_arr_tail_ =  0;
-	error_item_arr_tail_ = 0;
 
 	for (int i = 0; i < GetArrayLen(keyword_list); i++)
 		keyword_table_.Insert(keyword_list[i], TokenType(i));
-	for (int i = 0; i < kErrorMaxNum; i++)
-	{
-		error_item_arr_[i] = NULL;
-	}
-
 	l_read_allow_ = r_read_allow_ = true;
 	read_allow_count_ = 0;
 	line_ = 1;
-
-	
 }
 void Scanner::Close()
 {
 	int error_count = 0;
-	error_fp_ = fopen("error.txt", "w");
-	for (int i = 0; error_item_arr_[i] != NULL; i++)
+	FILE* error_fp = fopen("output\\error.txt", "w");
+	std::vector<ErrorItem*>::iterator it;
+	for (it = error_list_.begin(); it != error_list_.end();it++)
 	{
-		printf("Line %d, %s\n", error_item_arr_[i]->line, error_item_arr_[i]->description);
-		fprintf(error_fp_, "Line %d, %s\n", error_item_arr_[i]->line, error_item_arr_[i]->description);
+		printf("Line %d, %s\n", (*it)->line, (*it)->description);
+		fprintf(error_fp, "Line %d, %s\n", (*it)->line, (*it)->description);
 		error_count++;
 	}
+	printf("Scanning finished\n");
 	if (error_count != 0)
 		printf(" Error count %d\n", error_count);
 	else
@@ -144,7 +140,8 @@ void Scanner::Close()
 	}	
 	fclose(fp_);
 	fclose(token_out_fp_);
-	fclose(error_fp_);
+	fclose(error_fp);
+	//PrintTokenList();
 }
 void Scanner::ScanIdnAndKWord()
 {
@@ -157,12 +154,11 @@ void Scanner::ScanIdnAndKWord()
 		tmp_token_name[tmp_token_name_tail++] = tolower(buf_[forward_pos_]);
 		ch_ = MoveForwardGetChar();
 	}
-
 	MoveBack();
 	if ((token_type = keyword_table_.Find(tmp_token_name)) != NULL)
 		DealToken((TokenType)token_type);
 	else
-		DealToken(T_IDN);
+		DealToken(T_ID);
 	return;
 }
 void Scanner::ScanNumber()
@@ -202,7 +198,7 @@ void Scanner::ScanNumber()
 				DealToken(T_INT);
 				MoveForwardGetChar();
 				MoveForwardGetChar();
-				DealToken(T_DOUBLE_PEROID);
+				DealToken(T_DOUBLE_DOT);
 				return;
 			}
 		}
@@ -242,7 +238,7 @@ void Scanner::ScanNumber()
 			DealToken(T_INT);
 			MoveForwardGetChar();
 			MoveForwardGetChar();
-			DealToken(T_DOUBLE_PEROID);
+			DealToken(T_DOUBLE_DOT);
 			return;
 		}
 		else
@@ -267,6 +263,8 @@ void Scanner::ScanToken()
 	while (ch_ != EOF)
 	{
 		ch_ = MoveForwardGetChar();
+		if (ch_ == EOF)
+			break;
 		if (ch_ == '\t' || ch_ == '\n' || ch_ == ' ')
 		{
 			while (ch_ == '\t' || ch_ == '\n' || ch_ == ' ')
@@ -274,6 +272,8 @@ void Scanner::ScanToken()
 				if (ch_ == '\n')
 					line_ ++;
 				ch_ = MoveForwardGetChar();
+				if (ch_ == EOF)
+					break;
 			}
 			MoveBack();
 			crt_pos_ = forward_pos_;
@@ -295,6 +295,8 @@ void Scanner::ScanToken()
 			break;
 		case ':':
 			ch_ = MoveForwardGetChar();
+			if (ch_ == EOF)
+				break;
 			if (ch_ == '=')
 				DealToken(T_ASS);
 			else
@@ -305,6 +307,8 @@ void Scanner::ScanToken()
 			break;
 		case '*':
 			ch_ = MoveForwardGetChar();
+			if (ch_ == EOF)
+				break;
 			if (ch_ == '*')
 				DealToken(T_POW);
 			else if (ch_ == '=')
@@ -317,6 +321,8 @@ void Scanner::ScanToken()
 			break;
 		case '+':
 			ch_ = MoveForwardGetChar();
+			if (ch_ == EOF)
+				break;
 			if (ch_ == '=')
 				DealToken(T_ADDE);
 			else
@@ -327,6 +333,8 @@ void Scanner::ScanToken()
 			break;
 		case '-':
 			ch_ = MoveForwardGetChar();
+			if (ch_ == EOF)
+				break;
 			if (ch_ == '=')
 				DealToken(T_SUBE);
 			else
@@ -342,7 +350,7 @@ void Scanner::ScanToken()
 			DealToken(T_RPAR);
 			break;
 		case '.':
-			DealToken(T_PERIOD);
+			DealToken(T_DOT);
 			break;
 		case ',':
 			DealToken(T_COMMA);
@@ -361,6 +369,8 @@ void Scanner::ScanToken()
 			break;
 		case '<':
 			ch_ = MoveForwardGetChar();
+			if (ch_ == EOF)
+				break;
 			if (ch_ == '=')
 				DealToken(T_LTE);
 			else if (ch_ == '>')
@@ -373,6 +383,8 @@ void Scanner::ScanToken()
 			break;
 		case '>':
 			ch_ = MoveForwardGetChar();
+			if (ch_ == EOF)
+				break;
 			if (ch_ == '=')
 				DealToken(T_GTE);
 			else
@@ -383,6 +395,8 @@ void Scanner::ScanToken()
 			break;
 		case '/':
 			ch_ = MoveForwardGetChar();
+			if (ch_ == EOF)
+				break;
 			if (ch_ == '/')
 			{
 				while (ch_ != '\n')
@@ -390,19 +404,23 @@ void Scanner::ScanToken()
 					if (ch_ == '\n')
 						line_++;
 					ch_ = MoveForwardGetChar();
+					if (ch_ == EOF)
+						break;
 				}			
 				crt_pos_ = forward_pos_;
 			}
 			else
 			{
 				MoveBack();
-				DealToken(T_SLASH);
+				DealToken(T_DIV);
 			}		
 			break;	
 		case '\'':				
 		case '\"':
 			lchar = ch_;
 			ch_ = MoveForwardGetChar();
+			if (ch_ == EOF)
+				break;
 			while (ch_ != lchar)
 			{
 				if ((forward_pos_ - crt_pos_ + kReadBufferSize) % kReadBufferSize > kStringMaxLen)
@@ -412,12 +430,16 @@ void Scanner::ScanToken()
 					break;
 				}
 				ch_ = MoveForwardGetChar();
+				if (ch_ == EOF)
+					break;
 			}
 			if (ch_ == lchar)
 				DealToken(T_STR);
 			break;
 		case '{':
 			ch_ = MoveForwardGetChar();
+			if (ch_ == EOF)
+				break;
 			while (ch_ != '}')
 			{
 				if (abs(forward_pos_ - crt_pos_) >  kCommentMaxLen)
@@ -427,6 +449,8 @@ void Scanner::ScanToken()
 					break;
 				}
 				ch_ = MoveForwardGetChar();
+				if (ch_ == EOF)
+					break;
 			}
 			if (ch_ == '}')
 				crt_pos_ = forward_pos_;
@@ -436,4 +460,22 @@ void Scanner::ScanToken()
 		}
 	}
 	Close();
+}
+void Scanner::PrintTokenList()
+{
+	FILE* log_fp = fopen("output\\log.txt", "w");
+	std::vector<TokenItem*>::iterator it;
+	for (it = token_list_.begin(); it != token_list_.end(); it++)
+		fprintf(log_fp, "%d, %p\n", (*it)->token_type, (*it)->symbol_addr);
+	fclose(log_fp);
+}
+
+Scanner::~Scanner()
+{
+	std::vector<ErrorItem*>::iterator it;
+	for (it = error_list_.begin(); it != error_list_.end();it++)
+	{
+		delete *it;
+		*it = NULL;
+	}
 }

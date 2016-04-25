@@ -5,7 +5,6 @@
 #include <cstdlib>
 #include <cstring>
 #include "common.h"
-#include "dynamic_array.h"
 
 template <typename Key, typename Val>
 class HashTable
@@ -28,6 +27,7 @@ public:
 	unsigned int HashBKDR(Key key);
 	bool Insert(Key key, Val new_node);
 	Val Find(Key key);
+	void* FindAddr(Key key);
 	unsigned int Hash(Key key);
 };
 
@@ -67,6 +67,19 @@ Val HashTable<Key, Val>::Find(Key key)
 	return (Val)NULL;
 }
 template <typename Key, typename Val>
+void* HashTable<Key, Val>::FindAddr(Key key)
+{
+	size_t hash_val = Hash(key), index = hash_val;
+	while (hash_vec_[index] != NULL){
+		if (hash_vec_[index]->hash_val == hash_val)
+		{
+			return &(hash_vec_[index]);
+		}
+		index++;
+	}
+	return NULL;
+}
+template <typename Key, typename Val>
 unsigned int HashTable<Key, Val>::Hash(Key key)
 {
 	return HashBKDR(key);
@@ -100,10 +113,4 @@ unsigned int HashTable<Key, Val>::HashBKDR(Key key)
 	}
 	return (hash & 0x7fffffff)  % kHashTableCapacity;
 }
-
-
-//template <typename Key, typename Val>
-//Val & HashTable<Key, Val>::operator [] (Key key) 
-//{
-//}
 #endif
