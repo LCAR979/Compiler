@@ -29,6 +29,10 @@ public:
 	{
 		return index == kStackCapacity - 1;
 	}
+	int Size()
+	{
+		return index + 1;
+	}
 };
 
 #endif

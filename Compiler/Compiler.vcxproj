@@ -92,9 +92,9 @@
   <ItemGroup>
     <Text Include="output\error.txt" />
     <Text Include="output\log.txt" />
+    <Text Include="output\reduction.txt" />
     <Text Include="output\token.txt" />
-    <Text Include="res\action.txt" />
-    <Text Include="res\goto.txt" />
+    <Text Include="res\drive_table.txt" />
     <Text Include="res\grammer_number_transed.txt" />
     <Text Include="res\source.txt" />
   </ItemGroup>

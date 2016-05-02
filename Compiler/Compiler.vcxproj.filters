@@ -43,12 +43,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="res\action.txt">
-      <Filter>资源文件</Filter>
-    </Text>
-    <Text Include="res\goto.txt">
-      <Filter>资源文件</Filter>
-    </Text>
     <Text Include="res\source.txt">
       <Filter>资源文件</Filter>
     </Text>
@@ -62,6 +56,12 @@
       <Filter>资源文件</Filter>
     </Text>
     <Text Include="res\grammer_number_transed.txt">
+      <Filter>资源文件</Filter>
+    </Text>
+    <Text Include="res\drive_table.txt">
+      <Filter>资源文件</Filter>
+    </Text>
+    <Text Include="output\reduction.txt">
       <Filter>资源文件</Filter>
     </Text>
   </ItemGroup>

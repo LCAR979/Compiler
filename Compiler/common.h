@@ -9,16 +9,18 @@ typedef enum TokenType
 	T_FILE, T_FOR, T_FUNCTION, T_GOTO, T_IF, T_IN, T_LABEL, T_MOD, T_NIL, T_NOT, 
 	T_OF, T_OR, T_PACKED, T_PRODEDURE, T_PROGRAM, T_RECORD, T_REPEAT, T_SET, T_THEN, T_TO,
 	T_TYPE, T_UNTIL, T_VAR, T_WHILE, T_WITH,
-	T_INT, T_REAL,
+	T_INT_TYPE, T_REAL_TYPE, 
 	T_ADD, T_SUB, T_MUL, T_ADDE, T_SUBE, T_MULE, T_DIVE, T_POW,
 	T_EQL, T_NEQ, T_GT, T_GTE, T_LT, T_LTE,
 	T_COMMA, T_COLON, T_SEMICL, T_SLASH, T_EXC, T_QUESTION,
 	T_SHARP, T_DOT, T_CONT, T_LPAR, T_RPAR, T_LBRKPAR, T_RBRKPAR, T_ASS, T_DOUBLE_DOT,
-	T_ID, T_STR
+	T_INT, T_REAL, T_ID, T_STR, T_FINAL
 }TokenType;
+
+//T_FINAL and V_start is used for special puopose
 typedef enum VarType
 {
-	V_start = T_STR +1,
+	V_start = T_FINAL + 1,
 	V_program, V_subprogram_declarations, V_identifier_list, V_declarations, V_declaration,
 	V_type, V_standard_type, V_subprogram_declaration, V_subprogram_head, V_arguments,
 	V_parameter_list, V_optional_statements, V_statement_list, V_statement, V_procedure_statement,
@@ -48,12 +50,30 @@ static char* keyword_list[] = {
 	"mod", "nil", "not", "of", "or", "packed", "prodedure", "program",
 	"record", "repeat", "set", "then", "to", "type", "until", "var",
 	"while", "with",
-	"int", "real"
+	"integer", "real"
+};
+static char* var_list[] = {
+	"+", "-", "*", "+=", "-=", "*=", "/=", "**",
+	//T_EQL, T_NEQ, T_GT, T_GTE, T_LT, T_LTE,
+	"=", "<>", ">", ">=", "<", "<=",
+	//T_COMMA, T_COLON, T_SEMICL, T_SLASH, T_EXC, T_QUESTION,
+	",", ":", ";", "/", "!", "?",
+	//T_SHARP, T_DOT, T_CONT, T_LPAR, T_RPAR, T_LBRKPAR, T_RBRKPAR, T_ASS, T_DOUBLE_DOT,
+	"#", ".", "&", "(", ")", "[", "]", ":=", "..",
+	//T_INT, T_REAL, T_ID, T_STR, T_FINAL
+	"int_num", "real_num", "id", "string", "$", 
+
+	"start", "program", "subprogram_declarations", "identifier_list", "declarations", "declaration",
+	"type", "standard_type", "subprogram_declaration", "subprogram_head", "arguments",
+	"parameter_list", "optional_statements", "statement_list", "statement", "procedure_statement",
+	"compound_statement", "variable", "expression", "expression_list", "simple_expression",
+	"term", "factor", "sign", "relop", "addop",
+	"mulop", "num",
 };
 
-typedef enum _ParserStateType
+typedef enum ParserStateType
 {
-	Acc = 1023, Fail = 255, Parsing= 253
+	Acc = 1023, Fail = 254,
 }ParserStateType;
 
 typedef struct _SymbolItem
