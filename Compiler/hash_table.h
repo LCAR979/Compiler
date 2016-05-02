@@ -23,6 +23,7 @@ private:
 	HashItem<Key, Val>*  hash_vec_[kHashTableCapacity] ;
 public:
 	HashTable();
+	~HashTable();
 	unsigned int HashPJW(Key key);
 	unsigned int HashBKDR(Key key);
 	bool Insert(Key key, Val new_node);
@@ -37,7 +38,15 @@ HashTable<Key, Val>::HashTable()
 	for (size_t i = 0; i < kHashTableCapacity; i++)
 		hash_vec_[i] = NULL;
 }
-
+template <typename Key, typename Val>
+HashTable<Key, Val>:: ~HashTable()
+{
+	for (size_t i = 0; i < kHashTableCapacity; i++)
+	{
+		delete hash_vec_[i];
+		hash_vec_[i] = NULL;
+	}
+}
 template <typename Key, typename Val>
 bool HashTable<Key, Val>::Insert(Key key, Val val)
 {
@@ -113,4 +122,5 @@ unsigned int HashTable<Key, Val>::HashBKDR(Key key)
 	}
 	return (hash & 0x7fffffff)  % kHashTableCapacity;
 }
+
 #endif

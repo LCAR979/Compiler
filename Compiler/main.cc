@@ -5,16 +5,13 @@
 
 int main()
 {
-	Scanner* scanner = new Scanner;
-	scanner->Init();
-	scanner->ScanToken();
+	Scanner scanner;
+	scanner.Init();
+	scanner.ScanToken();
 
+	Parser parser;
+	parser.Init();
+	parser.Startup(scanner.token_list_);
 
-	Parser* parser = new Parser;
-	parser->Init();
-	parser->Startup(scanner->token_list_);
-
-	delete scanner;
-	delete parser;
 	return 0;
 }

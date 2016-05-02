@@ -478,4 +478,16 @@ Scanner::~Scanner()
 		delete *it;
 		*it = NULL;
 	}
+	std::vector<SymbolItem*>::iterator it;
+	for (it = symbol_table_.begin(); it != symbol_table_.end(); it++)
+	{
+		delete *it;
+		*it = NULL;
+	}
+	std::vector<TokenItem*>::iterator it;
+	for (it = token_list_.begin(); it != token_list_.end(); it++)
+	{
+		delete *it;
+		*it = NULL;
+	}
 }
