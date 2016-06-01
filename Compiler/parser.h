@@ -2,7 +2,7 @@
 #define __PARSER_H__
 
 #include <vector>
-#include "common.h"
+#include "global.h"
 #include "general_stack.h"
 
 class Parser
@@ -11,14 +11,14 @@ private:
 	GeneralStack<int> var_stack_;
 	GeneralStack<int> state_stack_;
 	int production_table_[kMaxProductionNum][kMaxProductionRightLen];
-	int drive_table_[kStateTypeNum][kVariableTypeNum];
+	int drive_table_[kMaxStateNum][kMaxVarNum];
 
 	void FillProductionTable();
 	void FillDriveTable();
 	void ErrorHandle();
 public:
 	void Init();
-	void Startup(std::vector<TokenItem*>&  token_list);
+	void Startup();
 	void Close();
 };
 

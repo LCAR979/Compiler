@@ -1,13 +1,15 @@
-#ifndef __TOKEN_H__
-#define __TOKEN_H__
+#ifndef __GLOBAL_H__
+#define __GLOBAL_H__
 
 #include <stdlib.h>
+#include <vector>
+#include "hash_table.h"
 
 typedef enum TokenType
 {
 	T_AND, T_ARRAY, T_BEGIN, T_CASE, T_CONST, T_DIV, T_DO, T_DOWNTO, T_ELSE, T_END,
 	T_FILE, T_FOR, T_FUNCTION, T_GOTO, T_IF, T_IN, T_LABEL, T_MOD, T_NIL, T_NOT, 
-	T_OF, T_OR, T_PACKED, T_PRODEDURE, T_PROGRAM, T_RECORD, T_REPEAT, T_SET, T_THEN, T_TO,
+	T_OF, T_OR, T_PACKED, T_PROCEDURE, T_PROGRAM, T_RECORD, T_REPEAT, T_SET, T_THEN, T_TO,
 	T_TYPE, T_UNTIL, T_VAR, T_WHILE, T_WITH,
 	T_INT_TYPE, T_REAL_TYPE, 
 	T_ADD, T_SUB, T_MUL, T_ADDE, T_SUBE, T_MULE, T_DIVE, T_POW,
@@ -44,14 +46,18 @@ const int kStateTypeNum = 200;
 
 const int kOutOfRangeException = 1;
 
+const int kMaxStateNum = 256;
+const int kMaxVarNum = 300;
+
 static char* keyword_list[] = {
 	"and", "array", "begin", "case", "const", "div", "do", "downto", "else",
 	"end", "file", "for", "function", "goto", "if", "in", "label",
-	"mod", "nil", "not", "of", "or", "packed", "prodedure", "program",
+	"mod", "nil", "not", "of", "or", "packed", "procedure", "program",
 	"record", "repeat", "set", "then", "to", "type", "until", "var",
 	"while", "with",
 	"integer", "real"
 };
+
 static char* var_list[] = {
 	"+", "-", "*", "+=", "-=", "*=", "/=", "**",
 	//T_EQL, T_NEQ, T_GT, T_GTE, T_LT, T_LTE,
@@ -76,27 +82,7 @@ typedef enum ParserStateType
 	Acc = 1023, Fail = 254,
 }ParserStateType;
 
-typedef struct _SymbolItem
-{
-	char* name;
-	TokenType token_type;
-	int* value_addr;
-	void* extend_attr;
-	_SymbolItem()
-	{
-		name = NULL;
-		value_addr = NULL;
-		extend_attr = NULL;
-	};
-	_SymbolItem(char* item_name, TokenType item_tokenType)
-	{
-		name = item_name;
-		token_type = item_tokenType;
-		extend_attr = NULL;
-	};
-} SymbolItem;
-
-typedef struct _KeywordItem
+typedef struct _KeywordItem 
 {
 	char* name;
 	int type;
@@ -120,19 +106,34 @@ typedef struct _ErrorItem
 
 typedef struct _TokenItem
 {
-	TokenType token_type;
-	int* symbol_addr;
-	_TokenItem(TokenType _token_type)
+	TokenType type;
+	char* name_addr;
+	_TokenItem(TokenType _type)
 	{
-		token_type = _token_type;
-		symbol_addr = NULL;
+		type = _type;
+		name_addr = NULL;
 	}
-	_TokenItem(TokenType _token_type, int* _symbol_addr)
+	_TokenItem(TokenType _type, char* _name_addr)
 	{
-		token_type = _token_type;
-		symbol_addr = _symbol_addr;
+		type = _type;
+		name_addr = _name_addr;
 	}
 }TokenItem;
+
+typedef struct {
+	int addr;
+	int width;
+	int offset;
+
+	int type;
+	//int quad;
+
+	int value;
+
+	//xx truelist;
+	//xx falselist;
+	//xx quad;
+}attribute;
 
 bool static IsHex(char ch)
 {
@@ -140,12 +141,14 @@ bool static IsHex(char ch)
 		return true;
 	return false;
 }
+
 bool static IsOct(char ch)
 {
 	if (ch >= '0' && ch <= '7')
 		return true;
 	return false;
 }
+
 bool static IsBin(char ch)
 {
 	if (ch == '0' || ch == '1')
@@ -158,4 +161,19 @@ int GetArrayLen(T& arr)
 {
 	return sizeof(arr) / sizeof(arr[0]);
 }
+
+
+extern int line_number;
+extern bool fatel_error;
+
+extern HashTable<char*, int> keyword_table;
+
+extern char token_name_arr[kTokenNameArrLen];
+extern int token_name_arr_tail;
+
+extern std::vector<int> const_int_vec;
+extern std::vector<double> const_real_vec;
+extern std::vector<TokenItem> token_vec;
+extern std::vector<ErrorItem> error_vec;
+
 #endif

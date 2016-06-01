@@ -11,7 +11,7 @@ int main()
 
 	Parser parser;
 	parser.Init();
-	parser.Startup(scanner.token_list_);
+	parser.Startup();
 
 	return 0;
 }

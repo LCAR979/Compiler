@@ -24,12 +24,12 @@
     <ClCompile Include="parser.cc">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="global.cc">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="scanner.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="common.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="general_stack.h">
@@ -41,18 +41,18 @@
     <ClInclude Include="parser.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="translation.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="global.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="symbol.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="res\source.txt">
-      <Filter>资源文件</Filter>
-    </Text>
-    <Text Include="output\error.txt">
-      <Filter>资源文件</Filter>
-    </Text>
-    <Text Include="output\token.txt">
-      <Filter>资源文件</Filter>
-    </Text>
-    <Text Include="output\log.txt">
       <Filter>资源文件</Filter>
     </Text>
     <Text Include="res\grammer_number_transed.txt">
@@ -61,7 +61,16 @@
     <Text Include="res\drive_table.txt">
       <Filter>资源文件</Filter>
     </Text>
+    <Text Include="output\error.txt">
+      <Filter>资源文件</Filter>
+    </Text>
     <Text Include="output\reduction.txt">
+      <Filter>资源文件</Filter>
+    </Text>
+    <Text Include="output\token.txt">
+      <Filter>资源文件</Filter>
+    </Text>
+    <Text Include="output\log.txt">
       <Filter>资源文件</Filter>
     </Text>
   </ItemGroup>

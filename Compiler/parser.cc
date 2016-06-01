@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "common.h"
+#include "global.h"
 #include "hash_table.h"
 #include "parser.h"
 
@@ -8,6 +8,7 @@ void Parser::Init()
 	FillProductionTable();
 	FillDriveTable();
 }
+
 void Parser::FillProductionTable ()
 {
 	FILE* fp = fopen("res\\grammer_number_transed.txt", "r");
@@ -40,7 +41,11 @@ void Parser::FillDriveTable()
 		exit(-1);
 	}
 	int i, j, val;
-	memset(drive_table_, Fail, sizeof(drive_table_));
+	for (int i = 0; i < kMaxStateNum; i++){
+		for (int j = 0; j < kMaxVarNum; j++)
+			drive_table_[i][j] = Fail;
+	}
+
 	while (fscanf(fp, "%d,%d,%d", &i, &j, &val) == 3)
 		drive_table_[i][j] = val;
 	fclose(fp);
@@ -48,7 +53,7 @@ void Parser::FillDriveTable()
 
 /*
 grammer production # encodes form 0,
-shift -> positive 
+shift -> 
 reduce -> negative
 state from 0
 */
@@ -66,15 +71,15 @@ char* GetLiteral(int index)
 	else
 		return keyword_list[index];
 }
-void Parser::Startup(std::vector<TokenItem*>& token_list)
+void Parser::Startup()
 {
 	FILE* outfp = fopen("output\\reduction.txt", "w");
-	int token_list_index = 0;
-	TokenType crt_token = token_list[token_list_index]->token_type;
+	size_t token_vecindex = 0;
+	TokenType crt_token = token_vec[token_vecindex].type;
 	int action, state_goto;
 	state_stack_.Push(0);
-	TokenItem* final = new TokenItem(T_FINAL);
-	token_list.push_back(final);
+	TokenItem final(T_FINAL);
+	token_vec.push_back(final);
 	while (crt_token && state_stack_.Top() != Acc && state_stack_.Top() != Fail)
 	{
 		action = drive_table_[state_stack_.Top()][crt_token];
@@ -94,23 +99,27 @@ void Parser::Startup(std::vector<TokenItem*>& token_list)
 			state_stack_.Push(action);
 			var_stack_.Push(crt_token);		
 			//printf("Shift in state %d and var %d \n", state_stack_.Top(), crt_token);
-			if (token_list_index < token_list.size() - 1)
-				crt_token = token_list[++token_list_index]->token_type;
+			if (token_vecindex < token_vec.size() - 1)
+				crt_token = token_vec[++token_vecindex].type;
 		}
 		else if (action < 0 )
 		{			
 			action *= -1;
 			fprintf(outfp, "No. %d\t", action);
 			fprintf(outfp, "%s => ", GetLiteral(production_table_[action][0]));
+			//printf("%s => ", GetLiteral(production_table_[action][0]));
 			int tmp = 1;
 			while (production_table_[action][tmp] != 0 && !var_stack_.Empty() && !state_stack_.Empty())
 			{
 				fprintf(outfp, " %s ", GetLiteral(production_table_[action][tmp]));
+				//printf(" %s ", GetLiteral(production_table_[action][tmp]));
 				var_stack_.Pop();
 				state_stack_.Pop();
 				tmp++;
 			}	
 			fprintf(outfp, "\n");
+			//printf("\n");
+
 			var_stack_.Push(production_table_[action][0]);		//suppose lpart is always char?
 			state_goto = drive_table_[state_stack_.Top()][var_stack_.Top()];	// always operateable?
 			if (state_goto == Fail)
@@ -119,6 +128,7 @@ void Parser::Startup(std::vector<TokenItem*>& token_list)
 				break;
 			}			
 			state_stack_.Push(state_goto);
+			//printf("Shift in state %d and var %d \n", state_stack_.Top(), var_stack_.Top());
 		}
 		else
 		{
@@ -126,7 +136,6 @@ void Parser::Startup(std::vector<TokenItem*>& token_list)
 			break;
 		}
 	}
-	delete final;
 	fclose(outfp);
 }
 void Parser::ErrorHandle()

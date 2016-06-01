@@ -4,7 +4,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include "common.h"
+
+const int kHashTableCapacity = 4099;	//a prime
 
 template <typename Key, typename Val>
 class HashTable
@@ -19,7 +20,7 @@ class HashTable
 			key(key), val(val), hash_val(hash_val){}
 	};
 private:
-	const static int kHashTableCapacity = 4099;	//a prime
+	
 	HashItem<Key, Val>*  hash_vec_[kHashTableCapacity] ;
 public:
 	HashTable();

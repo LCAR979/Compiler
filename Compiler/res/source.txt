@@ -1,6 +1,15 @@
 program test_case (var1, var2, var3);
 	var a,b : integer;
 		c : real;
+	function ff (m,n:real; a,b,c:integer) : real;
+		begin
+			while m < 5 do
+				m := m + 1
+		end;
+	procedure fff (mm: real);
+		begin
+			mm := 4
+		end;
 	begin
 		if c = 1 then 
 			c := a + b * c / b

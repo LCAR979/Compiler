@@ -78,6 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="global.cc" />
     <ClCompile Include="main.cc" />
     <ClCompile Include="parser.cc" />
     <ClCompile Include="scanner.cc" />
@@ -87,7 +88,9 @@
     <ClInclude Include="hash_table.h" />
     <ClInclude Include="parser.h" />
     <ClInclude Include="scanner.h" />
-    <ClInclude Include="common.h" />
+    <ClInclude Include="global.h" />
+    <ClInclude Include="symbol.h" />
+    <ClInclude Include="translation.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="output\error.txt" />

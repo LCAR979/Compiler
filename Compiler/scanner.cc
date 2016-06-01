@@ -4,14 +4,13 @@
 #include <cstdio>
 #include <cstdlib>
 #include <vector>
-#include <algorithm>
 #include "scanner.h"
-#include "common.h"
+#include "global.h"
 #include "hash_table.h"
 
 void Scanner::ErrorHandle(char* err_msg)
 {
-	error_list_.push_back(new ErrorItem(line_, err_msg));
+	error_vec.push_back(ErrorItem(line_number, err_msg));
 }
 
 char Scanner::MoveForwardGetChar()
@@ -44,21 +43,23 @@ char Scanner::MoveForwardGetChar()
 /* Copy buf_[crt_pos_.. forward_pos_]  to token_buf_ */
 void Scanner::DealInt(int tokenval)
 {
-	const_int_arr_[const_int_arr_tail_++] = tokenval;
+	const_int_vec.push_back(tokenval);
 }
+
 void Scanner::DealReal(double tokenval)
 {
-	const_real_arr_[const_real_arr_tail_++] = tokenval;
+	const_real_vec.push_back(tokenval);
+}
 
-}
-int* Scanner::InstallID(char* crt_token_name, TokenType token_type)
-{
-	token_name_arr_[token_name_arr_tail_++] = '\0';
-	SymbolItem* symbol_item = new SymbolItem(crt_token_name, token_type);
-	symbol_table_.Insert(symbol_item->name, symbol_item);
-	return (int*)symbol_table_.FindAddr(crt_token_name);
-}
-void Scanner::DealToken(TokenType token_type)
+//int* Scanner::InstallID(char* crt_token_name, TokenType type)
+//{
+//	token_name_arr[token_name_arr_tail++] = '\0';
+//	SymbolItem* symbol_item = new SymbolItem(crt_token_name, type);
+//	symbol_table.Insert(symbol_item->name, symbol_item);
+//	return (int*)symbol_table.FindAddr(crt_token_name);
+//}
+
+void Scanner::DealToken(TokenType type)
 {
 	char crt_token_name[kTokenMaxLen];
 	memset(crt_token_name, 0, sizeof(crt_token_name));
@@ -72,17 +73,21 @@ void Scanner::DealToken(TokenType token_type)
 		memcpy(crt_token_name + kReadBufferSize - 1 - crt_pos_,
 			(char*)(buf_), forward_pos_ + 1);
 	}
-	if (token_type == T_ID)
+	if (type == T_ID)
 	{
-		memcpy(token_name_arr_ + token_name_arr_tail_, crt_token_name, strlen(crt_token_name));
-		int* addr = InstallID(crt_token_name, token_type);
-		token_list_.push_back(new TokenItem(token_type, addr));
+		memcpy(token_name_arr + token_name_arr_tail, crt_token_name, strlen(crt_token_name));
+		TokenItem tmp_token_item(type, token_name_arr + token_name_arr_tail);
+		token_vec.push_back(tmp_token_item);
+		
+		token_name_arr_tail += strlen(crt_token_name);
+		token_name_arr[token_name_arr_tail++] = '\0';
+		//int* addr = InstallID(crt_token_name, type);
 	}
 	else
 	{
-		token_list_.push_back(new TokenItem(token_type));
+		token_vec.push_back(TokenItem(type));
 	}
-	fprintf(token_out_fp_, "(%d, %s)\n", token_type, crt_token_name);
+	fprintf(token_out_fp_, "(%d, %s)\n", type, crt_token_name);
 	crt_pos_ = forward_pos_;
 }
 
@@ -91,6 +96,7 @@ void Scanner::MoveBack()
 	forward_pos_ = (forward_pos_ + kReadBufferSize - 1) % kReadBufferSize;
 	ch_ = buf_[forward_pos_];
 }
+
 void Scanner::Init()
 {
 	fp_ = fopen("res\\source.txt", "r");
@@ -108,27 +114,29 @@ void Scanner::Init()
 
 	crt_pos_ = -1;
 	forward_pos_ = -1;
-	memset(token_buf_, 0, sizeof(token_buf_));
-	memset(buf_, 0, sizeof(buf_));
-	memset(token_name_arr_, 0, sizeof(token_name_arr_));
-
-	token_name_arr_tail_ = const_int_arr_tail_ = const_real_arr_tail_ =  0;
-
-	for (int i = 0; i < GetArrayLen(keyword_list); i++)
-		keyword_table_.Insert(keyword_list[i], TokenType(i));
 	l_read_allow_ = r_read_allow_ = true;
 	read_allow_count_ = 0;
-	line_ = 1;
+	line_number = 1;
+
+	memset(token_buf_, 0, sizeof(token_buf_));
+	memset(buf_, 0, sizeof(buf_));
+
+	memset(token_name_arr, 0, sizeof(token_name_arr));
+
+	for (int i = 0; i < GetArrayLen(keyword_list); i++)
+		keyword_table.Insert(keyword_list[i], TokenType(i));
+
 }
+
 void Scanner::Close()
 {
 	int error_count = 0;
 	FILE* error_fp = fopen("output\\error.txt", "w");
-	std::vector<ErrorItem*>::iterator it;
-	for (it = error_list_.begin(); it != error_list_.end();it++)
+	std::vector<ErrorItem>::iterator it;
+	for (it = error_vec.begin(); it != error_vec.end();it++)
 	{
-		printf("Line %d, %s\n", (*it)->line, (*it)->description);
-		fprintf(error_fp, "Line %d, %s\n", (*it)->line, (*it)->description);
+		printf("Line %d, %s\n",it->line, it->description);
+		fprintf(error_fp, "Line %d, %s\n", it->line, it->description);
 		error_count++;
 	}
 	printf("Scanning finished\n");
@@ -141,13 +149,14 @@ void Scanner::Close()
 	fclose(fp_);
 	fclose(token_out_fp_);
 	fclose(error_fp);
-	//PrintTokenList();
+	PrintTokenList();
 }
+
 void Scanner::ScanIdnAndKWord()
 {
 	char tmp_token_name[kTokenMaxLen];
 	int tmp_token_name_tail = 0;
-	int token_type;
+	int type;
 	memset(tmp_token_name, 0, sizeof(tmp_token_name));
 	while (isalpha(ch_) || isdigit(ch_) || ch_ == '$' || ch_ == '_')
 	{
@@ -155,12 +164,13 @@ void Scanner::ScanIdnAndKWord()
 		ch_ = MoveForwardGetChar();
 	}
 	MoveBack();
-	if ((token_type = keyword_table_.Find(tmp_token_name)) != NULL)
-		DealToken((TokenType)token_type);
+	if ((type = keyword_table.Find(tmp_token_name)) != NULL)
+		DealToken((TokenType)type);
 	else
 		DealToken(T_ID);
 	return;
 }
+
 void Scanner::ScanNumber()
 {
 	int res = 0;
@@ -257,6 +267,7 @@ void Scanner::ScanNumber()
 	}
 	return;
 }
+
 void Scanner::ScanToken()
 {
 	char lchar;
@@ -270,7 +281,7 @@ void Scanner::ScanToken()
 			while (ch_ == '\t' || ch_ == '\n' || ch_ == ' ')
 			{
 				if (ch_ == '\n')
-					line_ ++;
+					line_number ++;
 				ch_ = MoveForwardGetChar();
 				if (ch_ == EOF)
 					break;
@@ -402,7 +413,7 @@ void Scanner::ScanToken()
 				while (ch_ != '\n')
 				{
 					if (ch_ == '\n')
-						line_++;
+						line_number++;
 					ch_ = MoveForwardGetChar();
 					if (ch_ == EOF)
 						break;
@@ -461,33 +472,12 @@ void Scanner::ScanToken()
 	}
 	Close();
 }
+
 void Scanner::PrintTokenList()
 {
 	FILE* log_fp = fopen("output\\log.txt", "w");
-	std::vector<TokenItem*>::iterator it;
-	for (it = token_list_.begin(); it != token_list_.end(); it++)
-		fprintf(log_fp, "%d, %p\n", (*it)->token_type, (*it)->symbol_addr);
+	std::vector<TokenItem>::iterator it;
+	for (it = token_vec.begin(); it != token_vec.end(); it++)
+		fprintf(log_fp, "%d, %s\n", it->type, it->name_addr);
 	fclose(log_fp);
-}
-
-Scanner::~Scanner()
-{
-	std::vector<ErrorItem*>::iterator it;
-	for (it = error_list_.begin(); it != error_list_.end();it++)
-	{
-		delete *it;
-		*it = NULL;
-	}
-	std::vector<SymbolItem*>::iterator it;
-	for (it = symbol_table_.begin(); it != symbol_table_.end(); it++)
-	{
-		delete *it;
-		*it = NULL;
-	}
-	std::vector<TokenItem*>::iterator it;
-	for (it = token_list_.begin(); it != token_list_.end(); it++)
-	{
-		delete *it;
-		*it = NULL;
-	}
 }
