@@ -33,7 +33,6 @@ private:
 
 	void ScanNumber();
 	void ScanIdnAndKWord();
-	void ErrorHandle(char* _msg);
 
 public:
 	void Init();

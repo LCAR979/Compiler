@@ -21,12 +21,6 @@ typedef struct _SymbolItem
 		type = _type;
 		offset = _offset;
 	}
-	//_SymbolItem(char* _name, TokenType _type, int _offset)
-	//{
-	//	name = _name;
-	//	type = _type;
-	//	offset = _offset;
-	//}
 } SymbolItem;
 
 typedef struct _Sym_table

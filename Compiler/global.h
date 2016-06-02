@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <vector>
 #include "hash_table.h"
+#include "general_stack.h"
 
 typedef enum TokenType
 {
@@ -12,16 +13,17 @@ typedef enum TokenType
 	T_OF, T_OR, T_PACKED, T_PROCEDURE, T_PROGRAM, T_RECORD, T_REPEAT, T_SET, T_THEN, T_TO,
 	T_TYPE, T_UNTIL, T_VAR, T_WHILE, T_WITH,
 	T_INT_TYPE, T_REAL_TYPE, 
+
 	T_ADD, T_SUB, T_MUL, T_ADDE, T_SUBE, T_MULE, T_DIVE, T_POW,
 	T_EQL, T_NEQ, T_GT, T_GTE, T_LT, T_LTE,
 	T_COMMA, T_COLON, T_SEMICL, T_SLASH, T_EXC, T_QUESTION,
 	T_SHARP, T_DOT, T_CONT, T_LPAR, T_RPAR, T_LBRKPAR, T_RBRKPAR, T_ASS, T_DOUBLE_DOT,
-	T_INT, T_REAL, T_ID, T_STR, T_FINAL
-}TokenType;
+	T_INT, T_REAL, 
 
-//T_FINAL and V_start is used for special puopose
-typedef enum VarType
-{
+	T_ID, T_STR, 
+	
+	T_FINAL,			//Do not add this to compiler_bench
+
 	V_start = T_FINAL + 1,
 	V_program, V_subprogram_declarations, V_identifier_list, V_declarations, V_declaration,
 	V_type, V_standard_type, V_subprogram_declaration, V_subprogram_head, V_arguments,
@@ -29,7 +31,7 @@ typedef enum VarType
 	V_compound_statement, V_variable, V_expression, V_expression_list, V_simple_expression,
 	V_term, V_factor, V_sign, V_relop, V_addop,
 	V_mulop, V_num,
-}VarType;
+}TokenType;
 
 const int kReadBufferSize = 4096;
 const int kTokenMaxLen = 128;
@@ -49,27 +51,31 @@ const int kOutOfRangeException = 1;
 const int kMaxStateNum = 256;
 const int kMaxVarNum = 300;
 
+const int MAX_ASM_LINE = 1024;
+const int MAX_CHR_PER_ASM_LINE = 128;
+
 static char* keyword_list[] = {
 	"and", "array", "begin", "case", "const", "div", "do", "downto", "else",
 	"end", "file", "for", "function", "goto", "if", "in", "label",
 	"mod", "nil", "not", "of", "or", "packed", "procedure", "program",
 	"record", "repeat", "set", "then", "to", "type", "until", "var",
 	"while", "with",
-	"integer", "real"
+	"integer", "real",
 };
 
 static char* var_list[] = {
-	"+", "-", "*", "+=", "-=", "*=", "/=", "**",
+	"+", "-", "*", "+=", "-=", "*=", "/=", "**",		//8, 0
 	//T_EQL, T_NEQ, T_GT, T_GTE, T_LT, T_LTE,
-	"=", "<>", ">", ">=", "<", "<=",
+	"=", "<>", ">", ">=", "<", "<=",					//6, 8
 	//T_COMMA, T_COLON, T_SEMICL, T_SLASH, T_EXC, T_QUESTION,
-	",", ":", ";", "/", "!", "?",
+	",", ":", ";", "/", "!", "?",						//6, 14
 	//T_SHARP, T_DOT, T_CONT, T_LPAR, T_RPAR, T_LBRKPAR, T_RBRKPAR, T_ASS, T_DOUBLE_DOT,
-	"#", ".", "&", "(", ")", "[", "]", ":=", "..",
+	"#", ".", "&", "(", ")", "[", "]", ":=", "..",		//9, 20
 	//T_INT, T_REAL, T_ID, T_STR, T_FINAL
-	"int_num", "real_num", "id", "string", "$", 
+	"int_num", "real_num", "id", "string", "$",			//5, 29
 
-	"start", "program", "subprogram_declarations", "identifier_list", "declarations", "declaration",
+	"start",											//1, 34
+	"program", "subprogram_declarations", "identifier_list", "declarations", "declaration", //5, 35
 	"type", "standard_type", "subprogram_declaration", "subprogram_head", "arguments",
 	"parameter_list", "optional_statements", "statement_list", "statement", "procedure_statement",
 	"compound_statement", "variable", "expression", "expression_list", "simple_expression",
@@ -104,36 +110,71 @@ typedef struct _ErrorItem
 	}
 } ErrorItem;
 
+
+
 typedef struct _TokenItem
 {
 	TokenType type;
-	char* name_addr;
+
+	typedef union _TokenValue
+	{
+		char* name_addr;
+		int int_val;
+		double real_val;
+	}TokenVlaue;
+
+	TokenVlaue val;
+
+	_TokenItem(){}
 	_TokenItem(TokenType _type)
 	{
 		type = _type;
-		name_addr = NULL;
+		val.name_addr = NULL;
 	}
 	_TokenItem(TokenType _type, char* _name_addr)
 	{
 		type = _type;
-		name_addr = _name_addr;
+		val.name_addr = _name_addr;
+	}
+	_TokenItem(TokenType _type, int _int_val)
+	{
+		type = _type;
+		val.int_val = _int_val;
+	}
+	_TokenItem(TokenType _type, double _real_val)
+	{
+		type = _type;
+		val.real_val = _real_val;
 	}
 }TokenItem;
 
-typedef struct {
+typedef struct _BackpatchListItem
+{
+	int quad;
+	struct _BackpatchListItem* next;
+}BackpatchListItem;
+
+typedef struct _ItemAttribute
+{
 	int addr;
 	int width;
 	int offset;
 
-	int type;
+	TokenItem token;
 	//int quad;
 
-	int value;
+	BackpatchListItem* true_list;
+	BackpatchListItem* false_list;
+	BackpatchListItem* quad;
+	struct _ItemAttribute(){}
+}ItemAttribute;
 
-	//xx truelist;
-	//xx falselist;
-	//xx quad;
-}attribute;
+typedef struct _Item
+{
+	int state;
+	ItemAttribute attr;
+	struct _Item(){}
+}Item;
 
 bool static IsHex(char ch)
 {
@@ -162,6 +203,9 @@ int GetArrayLen(T& arr)
 	return sizeof(arr) / sizeof(arr[0]);
 }
 
+void ErrorHandle(char* _msg);
+
+void ErrorPrint();
 
 extern int line_number;
 extern bool fatel_error;
@@ -173,7 +217,9 @@ extern int token_name_arr_tail;
 
 extern std::vector<int> const_int_vec;
 extern std::vector<double> const_real_vec;
+
 extern std::vector<TokenItem> token_vec;
 extern std::vector<ErrorItem> error_vec;
+extern GeneralStack<Item> item_stack;
 
 #endif

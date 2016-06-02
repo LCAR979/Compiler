@@ -9,6 +9,10 @@ private:
 	T g_stack[kStackCapacity];
 	int index = -1;
 public:
+	GeneralStack()
+	{
+		index = -1;
+	}
 	void Push(T item)
 	{
 		g_stack[++index] = item;

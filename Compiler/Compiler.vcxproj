@@ -82,6 +82,7 @@
     <ClCompile Include="main.cc" />
     <ClCompile Include="parser.cc" />
     <ClCompile Include="scanner.cc" />
+    <ClCompile Include="translation.cc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="general_stack.h" />

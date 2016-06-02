@@ -8,10 +8,6 @@
 #include "global.h"
 #include "hash_table.h"
 
-void Scanner::ErrorHandle(char* err_msg)
-{
-	error_vec.push_back(ErrorItem(line_number, err_msg));
-}
 
 char Scanner::MoveForwardGetChar()
 {
@@ -41,14 +37,16 @@ char Scanner::MoveForwardGetChar()
 }
 
 /* Copy buf_[crt_pos_.. forward_pos_]  to token_buf_ */
-void Scanner::DealInt(int tokenval)
+void Scanner::DealInt(int int_val)
 {
-	const_int_vec.push_back(tokenval);
+	token_vec.push_back(TokenItem(T_INT, int_val));
+	//const_int_vec.push_back(tokenval);
 }
 
-void Scanner::DealReal(double tokenval)
+void Scanner::DealReal(double real_val)
 {
-	const_real_vec.push_back(tokenval);
+	token_vec.push_back(TokenItem(T_REAL, real_val));
+	//const_real_vec.push_back(tokenval);
 }
 
 //int* Scanner::InstallID(char* crt_token_name, TokenType type)
@@ -87,7 +85,6 @@ void Scanner::DealToken(TokenType type)
 	{
 		token_vec.push_back(TokenItem(type));
 	}
-	fprintf(token_out_fp_, "(%d, %s)\n", type, crt_token_name);
 	crt_pos_ = forward_pos_;
 }
 
@@ -103,12 +100,6 @@ void Scanner::Init()
 	if (fp_ == NULL)
 	{
 		fprintf(stderr, "Error opening source file.\n");
-		exit(-1);
-	}
-	token_out_fp_ = fopen("output\\token.txt", "w");
-	if (token_out_fp_ == NULL)
-	{
-		fprintf(stderr, "Error opening token file.\n");
 		exit(-1);
 	}
 
@@ -130,26 +121,9 @@ void Scanner::Init()
 
 void Scanner::Close()
 {
-	int error_count = 0;
-	FILE* error_fp = fopen("output\\error.txt", "w");
-	std::vector<ErrorItem>::iterator it;
-	for (it = error_vec.begin(); it != error_vec.end();it++)
-	{
-		printf("Line %d, %s\n",it->line, it->description);
-		fprintf(error_fp, "Line %d, %s\n", it->line, it->description);
-		error_count++;
-	}
 	printf("Scanning finished\n");
-	if (error_count != 0)
-		printf(" Error count %d\n", error_count);
-	else
-	{
-		printf("No token error\n");
-	}	
 	fclose(fp_);
-	fclose(token_out_fp_);
-	fclose(error_fp);
-	PrintTokenList();
+	//PrintTokenList();
 }
 
 void Scanner::ScanIdnAndKWord()
@@ -171,6 +145,21 @@ void Scanner::ScanIdnAndKWord()
 	return;
 }
 
+int HexToInt(char hexChar)
+{
+	if (hexChar >= '0' && hexChar <= 9)
+		return hexChar - '0';
+	else if (hexChar >= 'A' && hexChar <= 'F')
+		return hexChar - 'A' + 10;
+	else if (hexChar >= 'a' && hexChar <= 'f')
+		return hexChar - 'a' + 10;
+	else
+	{
+		printf("Passing non-hex character into HexToInt()\n");
+		return -1;
+	}		
+}
+
 void Scanner::ScanNumber()
 {
 	int res = 0;
@@ -182,20 +171,22 @@ void Scanner::ScanNumber()
 			ch_ = MoveForwardGetChar();
 			while (IsHex(ch_))
 			{
+				res = (res << 4) + HexToInt(ch_);
 				ch_ = MoveForwardGetChar();
 			}
 			MoveBack();
-			DealToken(T_INT);
+			DealInt(res); 
 			return;
 		}
 		else if (IsOct(ch_))
 		{
 			while (IsOct(ch_))
 			{
+				res = (res << 3) + (ch_ - '0');	//Todo: check Oct error
 				ch_ = MoveForwardGetChar();
 			}
-			MoveBack();
-			DealToken(T_INT);
+			MoveBack(); 
+			DealInt(res); 
 			return;
 		}
 		else if (ch_ == '.')
@@ -205,7 +196,7 @@ void Scanner::ScanNumber()
 			{
 				MoveBack();
 				MoveBack();
-				DealToken(T_INT);
+				DealInt(0);
 				MoveForwardGetChar();
 				MoveForwardGetChar();
 				DealToken(T_DOUBLE_DOT);
@@ -214,14 +205,14 @@ void Scanner::ScanNumber()
 		}
 		else
 		{
-			DealToken(T_INT);
+			DealInt(0);
 			return;
 		}
 	}
 	while (isdigit(ch_))
 	{
-		ch_ = MoveForwardGetChar();
 		res = res * 10 + ch_ - '0';
+		ch_ = MoveForwardGetChar();		
 	}
 	if (ch_ == '.')
 	{
@@ -232,20 +223,18 @@ void Scanner::ScanNumber()
 		{
 			while (isdigit(ch_))
 			{
-				ch_ = MoveForwardGetChar();
 				f_res = f_res + 1.0 / digit_count * (ch_ - '0');
-				digit_count++;
+				digit_count *= 10;
 				ch_ = MoveForwardGetChar();
 			}
 			MoveBack();
 			DealReal(f_res);
-			DealToken(T_REAL);
 		}
 		else if (ch_ == '.')
 		{
 			MoveBack();
 			MoveBack();
-			DealToken(T_INT);
+			DealInt(res);
 			MoveForwardGetChar();
 			MoveForwardGetChar();
 			DealToken(T_DOUBLE_DOT);
@@ -256,14 +245,12 @@ void Scanner::ScanNumber()
 			ErrorHandle("Unexpected character, expecting digit");
 			MoveBack();
 			return;
-		}
-			
+		}		
 	}
 	else
 	{
 		MoveBack();
 		DealInt(res);
-		DealToken(T_INT);
 	}
 	return;
 }
@@ -478,6 +465,6 @@ void Scanner::PrintTokenList()
 	FILE* log_fp = fopen("output\\log.txt", "w");
 	std::vector<TokenItem>::iterator it;
 	for (it = token_vec.begin(); it != token_vec.end(); it++)
-		fprintf(log_fp, "%d, %s\n", it->type, it->name_addr);
+		fprintf(log_fp, "%d, %s\n", it->type, (it->val).name_addr);
 	fclose(log_fp);
 }

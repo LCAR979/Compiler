@@ -74,15 +74,20 @@ char* GetLiteral(int index)
 void Parser::Startup()
 {
 	FILE* outfp = fopen("output\\reduction.txt", "w");
-	size_t token_vecindex = 0;
-	TokenType crt_token = token_vec[token_vecindex].type;
+
+	size_t token_vec_index = 0;
+	TokenType crt_token = token_vec[token_vec_index].type;
+
 	int action, state_goto;
-	state_stack_.Push(0);
-	TokenItem final(T_FINAL);
-	token_vec.push_back(final);
-	while (crt_token && state_stack_.Top() != Acc && state_stack_.Top() != Fail)
+
+	Item it;
+	it.state = 0;
+	it.attr.token.type = T_FINAL;
+	item_stack.Push(it);
+
+	while (crt_token && item_stack.Top().state != Acc && item_stack.Top().state != Fail)
 	{
-		action = drive_table_[state_stack_.Top()][crt_token];
+		action = drive_table_[item_stack.Top().state][crt_token];
 		if (action == Acc)
 		{
 			printf("Acc!\n");
@@ -90,55 +95,56 @@ void Parser::Startup()
 		}
 		if (action == Fail)
 		{
-			state_stack_.Push(Fail);
+			it.state = Fail;
+			item_stack.Push(it);
 			fprintf(stderr, "Error parsing grammer file\n");
 			break;
 		}
 		if (action > 0)
 		{
-			state_stack_.Push(action);
-			var_stack_.Push(crt_token);		
-			//printf("Shift in state %d and var %d \n", state_stack_.Top(), crt_token);
-			if (token_vecindex < token_vec.size() - 1)
-				crt_token = token_vec[++token_vecindex].type;
+			it.state = action;
+			it.attr.token = token_vec[token_vec_index];
+			item_stack.Push(it);
+	
+			//printf("Shift in state %d and var %d \n", item_stack.Top(), crt_token);
+			if (token_vec_index < token_vec.size() - 1)
+				crt_token = token_vec[++token_vec_index].type;
+			else
+				crt_token = T_FINAL;
 		}
 		else if (action < 0 )
 		{			
 			action *= -1;
 			fprintf(outfp, "No. %d\t", action);
 			fprintf(outfp, "%s => ", GetLiteral(production_table_[action][0]));
-			//printf("%s => ", GetLiteral(production_table_[action][0]));
+			printf("%s => ", GetLiteral(production_table_[action][0]));
 			int tmp = 1;
-			while (production_table_[action][tmp] != 0 && !var_stack_.Empty() && !state_stack_.Empty())
+			while (production_table_[action][tmp] != 0 && !item_stack.Empty())
 			{
 				fprintf(outfp, " %s ", GetLiteral(production_table_[action][tmp]));
-				//printf(" %s ", GetLiteral(production_table_[action][tmp]));
-				var_stack_.Pop();
-				state_stack_.Pop();
+				printf(" %s ", GetLiteral(production_table_[action][tmp]));
+				item_stack.Pop();
 				tmp++;
 			}	
 			fprintf(outfp, "\n");
-			//printf("\n");
-
-			var_stack_.Push(production_table_[action][0]);		//suppose lpart is always char?
-			state_goto = drive_table_[state_stack_.Top()][var_stack_.Top()];	// always operateable?
+			printf("\n");
+			
+			it.attr.token.type = (TokenType)production_table_[action][0];	
+			state_goto = drive_table_[item_stack.Top().state][it.attr.token.type];
+			it.state = state_goto;
 			if (state_goto == Fail)
 			{
-				fprintf(stderr, "Trapped in error state \n");
+				ErrorHandle("Trapped in error state \n");
 				break;
 			}			
-			state_stack_.Push(state_goto);
-			//printf("Shift in state %d and var %d \n", state_stack_.Top(), var_stack_.Top());
+			item_stack.Push(it);
+			//printf("Shift in state %d and var %d \n", it.state, it.attr.token.type);
 		}
 		else
 		{
-			ErrorHandle();
+			ErrorHandle("Unknown error");
 			break;
 		}
 	}
 	fclose(outfp);
-}
-void Parser::ErrorHandle()
-{
-	printf("Syntax error!\n");
 }
