@@ -2,6 +2,7 @@
 #include "global.h"
 #include "hash_table.h"
 #include "parser.h"
+#include "translation.h"
 
 void Parser::Init()
 {
@@ -70,7 +71,7 @@ void Parser::Startup()
 
 	Item it;
 	it.state = 0;
-	it.attr.token.type = T_FINAL;
+	it.attr.type = T_FINAL;
 	st.Push(it);
 
 	while (crt_token && st.Top().state != Acc && st.Top().state != Fail)
@@ -79,6 +80,7 @@ void Parser::Startup()
 		if (action == Acc)
 		{
 			printf("Acc!\n");
+			PrintInterCode();
 			break;
 		}
 		if (action == Fail)
@@ -91,7 +93,10 @@ void Parser::Startup()
 		if (action > 0)
 		{
 			it.state = action;
-			it.attr.token = token_vec[token_vec_index];
+			it.attr.type = token_vec[token_vec_index].type;
+			it.attr.name_addr = token_vec[token_vec_index].val.name_addr;
+			it.attr.int_val = token_vec[token_vec_index].val.int_val;
+			it.attr.real_val = token_vec[token_vec_index].val.real_val;
 			st.Push(it);
 	
 			//printf("Shift in state %d and var %d \n", st.st.Top(), crt_token);
@@ -117,8 +122,8 @@ void Parser::Startup()
 			fprintf(outfp, "\n");
 			printf("\n");
 			
-			it.attr.token.type = (TokenType)production_table_[action][0];	
-			state_goto = drive_table_[st.Top().state][it.attr.token.type];
+			it.attr.type = (TokenType)production_table_[action][0];	
+			state_goto = drive_table_[st.Top().state][it.attr.type];
 			it.state = state_goto;
 			if (state_goto == Fail)
 			{
@@ -126,7 +131,7 @@ void Parser::Startup()
 				break;
 			}			
 			st.Push(it);
-			//printf("Shift in state %d and var %d \n", it.state, it.attr.token.type);
+			//printf("Shift in state %d and var %d \n", it.state, it.attr.type);
 		}
 		else
 		{

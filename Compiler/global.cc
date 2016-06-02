@@ -5,6 +5,7 @@
 
 int line_number = 0;
 bool fatel_error = false;
+int tmp_count = 0;
 
 HashTable<char*, int> keyword_table;
 
@@ -57,4 +58,13 @@ char* GetLiteral(int index)
 	//between the terminal part and nonterminal part
 	else
 		return keyword_list[index];
+}
+
+char tmp_int_buf[INTER_CODE_OP_LEN];
+char* IntToStr(int i)
+{
+	memset(tmp_int_buf, 0, sizeof(tmp_int_buf));
+	char *format = "%d";
+	sprintf(tmp_int_buf, format, i);
+	return tmp_int_buf;
 }

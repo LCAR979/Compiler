@@ -25,7 +25,7 @@ const int kMaxStateNum = 256;
 const int kMaxVarNum = 300;
 
 const int MAX_INTERCODE_LINE = 1024;
-const int MAX_CHR_PER_INTERCODE_LINE = 128;
+const int INTER_CODE_OP_LEN = 12;
 
 typedef enum TokenType
 {
@@ -117,7 +117,6 @@ typedef struct _ErrorItem
 typedef struct _TokenItem
 {
 	TokenType type;
-
 	typedef union _TokenValue
 	{
 		char* name_addr;
@@ -162,9 +161,13 @@ typedef struct _ItemAttribute
 	int width;
 	int offset;
 
-	TokenItem token;
+	TokenType type;
+	char* name_addr;
+	int int_val;
+	double real_val;
 	
 	int quad;
+	int again;
 	BackpatchListItem* truelist;
 	BackpatchListItem* falselist;
 	BackpatchListItem* nextlist;
@@ -211,8 +214,11 @@ void ErrorPrint();
 
 char* GetLiteral(int index);
 
+char* IntToStr(int i);
+
 extern int line_number;
 extern bool fatel_error;
+extern int tmp_count;
 
 extern HashTable<char*, int> keyword_table;
 
