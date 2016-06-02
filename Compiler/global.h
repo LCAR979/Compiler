@@ -6,6 +6,27 @@
 #include "hash_table.h"
 #include "general_stack.h"
 
+const int kReadBufferSize = 4096;
+const int kTokenMaxLen = 128;
+const int kStringMaxLen = 12;
+const int kCommentMaxLen = 12;
+const int kTokenNameArrLen = 1024 * 8;
+const int kErrorMaxNum = 1024;
+
+const int kMaxProductionRightLen = 20;
+const int kMaxProductionNum = 100;
+
+
+const int kStateTypeNum = 200;
+
+const int kOutOfRangeException = 1;
+
+const int kMaxStateNum = 256;
+const int kMaxVarNum = 300;
+
+const int MAX_INTERCODE_LINE = 1024;
+const int MAX_CHR_PER_INTERCODE_LINE = 128;
+
 typedef enum TokenType
 {
 	T_AND, T_ARRAY, T_BEGIN, T_CASE, T_CONST, T_DIV, T_DO, T_DOWNTO, T_ELSE, T_END,
@@ -33,27 +54,6 @@ typedef enum TokenType
 	V_mulop, V_num,
 }TokenType;
 
-const int kReadBufferSize = 4096;
-const int kTokenMaxLen = 128;
-const int kStringMaxLen = 12;
-const int kCommentMaxLen = 12;
-const int kTokenNameArrLen = 1024 * 8;
-const int kErrorMaxNum = 1024;
-
-const int kMaxProductionRightLen = 20;
-const int kMaxProductionNum = 100;
-const int kCharTypeNum = 256;
-const int kVariableTypeNum = 256;
-const int kStateTypeNum = 200;
-
-const int kOutOfRangeException = 1;
-
-const int kMaxStateNum = 256;
-const int kMaxVarNum = 300;
-
-const int MAX_ASM_LINE = 1024;
-const int MAX_CHR_PER_ASM_LINE = 128;
-
 static char* keyword_list[] = {
 	"and", "array", "begin", "case", "const", "div", "do", "downto", "else",
 	"end", "file", "for", "function", "goto", "if", "in", "label",
@@ -61,6 +61,7 @@ static char* keyword_list[] = {
 	"record", "repeat", "set", "then", "to", "type", "until", "var",
 	"while", "with",
 	"integer", "real",
+	"true", "false"
 };
 
 static char* var_list[] = {
@@ -72,7 +73,10 @@ static char* var_list[] = {
 	//T_SHARP, T_DOT, T_CONT, T_LPAR, T_RPAR, T_LBRKPAR, T_RBRKPAR, T_ASS, T_DOUBLE_DOT,
 	"#", ".", "&", "(", ")", "[", "]", ":=", "..",		//9, 20
 	//T_INT, T_REAL, T_ID, T_STR, T_FINAL
-	"int_num", "real_num", "id", "string", "$",			//5, 29
+	"int_num", "real_num", 
+	"true", "false"
+	
+	"id", "string", "$",			//5, 29
 
 	"start",											//1, 34
 	"program", "subprogram_declarations", "identifier_list", "declarations", "declaration", //5, 35
@@ -109,8 +113,6 @@ typedef struct _ErrorItem
 		description = _description;
 	}
 } ErrorItem;
-
-
 
 typedef struct _TokenItem
 {
@@ -161,11 +163,11 @@ typedef struct _ItemAttribute
 	int offset;
 
 	TokenItem token;
-	//int quad;
-
-	BackpatchListItem* true_list;
-	BackpatchListItem* false_list;
-	BackpatchListItem* quad;
+	
+	int quad;
+	BackpatchListItem* truelist;
+	BackpatchListItem* falselist;
+	BackpatchListItem* nextlist;
 	struct _ItemAttribute(){}
 }ItemAttribute;
 
@@ -207,6 +209,8 @@ void ErrorHandle(char* _msg);
 
 void ErrorPrint();
 
+char* GetLiteral(int index);
+
 extern int line_number;
 extern bool fatel_error;
 
@@ -220,6 +224,6 @@ extern std::vector<double> const_real_vec;
 
 extern std::vector<TokenItem> token_vec;
 extern std::vector<ErrorItem> error_vec;
-extern GeneralStack<Item> item_stack;
+extern GeneralStack<Item> st;
 
 #endif

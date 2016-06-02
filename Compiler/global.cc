@@ -17,7 +17,7 @@ std::vector<double> const_real_vec;
 
 std::vector<TokenItem> token_vec;
 std::vector<ErrorItem> error_vec;
-GeneralStack<Item> item_stack;
+GeneralStack<Item> st;
 
 void ErrorHandle(char* err_msg)
 {
@@ -43,4 +43,18 @@ void ErrorPrint()
 		printf("No token error\n");
 	}
 	fclose(error_fp);
+}
+
+char* GetLiteral(int index)
+{
+	if (index > T_REAL_TYPE && index < V_start)
+		return var_list[index - T_REAL_TYPE - 1];
+	else if (index >= V_start)
+		return var_list[index - T_REAL_TYPE];
+	//+1 is because there cannot see T_FINAL in compiler_workbench
+	//V_start is 71 here, while 70 for compiler_workbench
+	//Compiler workbench does leave a index deliberately for the symbol of #/$/final of input string
+	//between the terminal part and nonterminal part
+	else
+		return keyword_list[index];
 }
