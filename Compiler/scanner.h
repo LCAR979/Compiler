@@ -4,8 +4,6 @@
 #include <cstdio>
 #include <vector>
 #include "global.h"
-#include "hash_table.h"
-#include "parser.h"
 
 class Scanner
 {

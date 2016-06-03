@@ -82,12 +82,13 @@
     <ClCompile Include="main.cc" />
     <ClCompile Include="parser.cc" />
     <ClCompile Include="scanner.cc" />
+    <ClCompile Include="symbol.cc" />
     <ClCompile Include="translation.cc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="general_stack.h" />
-    <ClInclude Include="hash_table.h" />
     <ClInclude Include="parser.h" />
+    <ClInclude Include="production.h" />
     <ClInclude Include="scanner.h" />
     <ClInclude Include="global.h" />
     <ClInclude Include="symbol.h" />
@@ -95,6 +96,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="output\error.txt" />
+    <Text Include="output\intercode.txt" />
     <Text Include="output\log.txt" />
     <Text Include="output\reduction.txt" />
     <Text Include="output\token.txt" />

@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include "global.h"
-#include "hash_table.h"
 #include "parser.h"
 #include "translation.h"
 
@@ -80,7 +79,7 @@ void Parser::Startup()
 		if (action == Acc)
 		{
 			printf("Acc!\n");
-			PrintInterCode();
+			PrintIntercode();
 			break;
 		}
 		if (action == Fail)
@@ -88,6 +87,7 @@ void Parser::Startup()
 			it.state = Fail;
 			st.Push(it);
 			fprintf(stderr, "Error parsing grammer file\n");
+			PrintIntercode();
 			break;
 		}
 		if (action > 0)
@@ -98,7 +98,7 @@ void Parser::Startup()
 			it.attr.int_val = token_vec[token_vec_index].val.int_val;
 			it.attr.real_val = token_vec[token_vec_index].val.real_val;
 			st.Push(it);
-	
+		
 			//printf("Shift in state %d and var %d \n", st.st.Top(), crt_token);
 			if (token_vec_index < token_vec.size() - 1)
 				crt_token = token_vec[++token_vec_index].type;
@@ -108,20 +108,18 @@ void Parser::Startup()
 		else if (action < 0 )
 		{			
 			action *= -1;
-			fprintf(outfp, "No. %d\t", action);
-			fprintf(outfp, "%s => ", GetLiteral(production_table_[action][0]));
-			printf("%s => ", GetLiteral(production_table_[action][0]));
+			(*production[action].f)(&it);
+
 			int tmp = 1;
 			while (production_table_[action][tmp] != 0 && !st.Empty())
-			{
-				fprintf(outfp, " %s ", GetLiteral(production_table_[action][tmp]));
-				printf(" %s ", GetLiteral(production_table_[action][tmp]));
+			{			
 				st.Pop();
 				tmp++;
 			}	
-			fprintf(outfp, "\n");
-			printf("\n");
-			
+
+			fprintf(outfp, "No. %d\t %s \n", action, production[action].description);
+			printf("No. %d\t %s\n", action, production[action].description);
+
 			it.attr.type = (TokenType)production_table_[action][0];	
 			state_goto = drive_table_[st.Top().state][it.attr.type];
 			it.state = state_goto;

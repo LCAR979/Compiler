@@ -91,120 +91,9 @@ void BackPatch(BackpatchListItem* p, int i)
 
 	delete prev;
 }
-/*		bool		*/	
-void bool_exp_or(Item* it)
-{
-	BackPatch(st.s[st.top - 3].attr.falselist, st.s[st.top - 1].attr.quad);
-	it->attr.truelist = Merge(st.s[st.top - 3].attr.truelist,
-		st.s[st.top].attr.truelist);
-	it->attr.falselist = st.s[st.top].attr.falselist;
-}
 
-void bool_exp_and(Item* it)
-{
-	BackPatch(st.s[st.top - 3].attr.truelist, st.s[st.top - 1].attr.quad);
-	it->attr.truelist = st.s[st.top].attr.truelist;
-	it->attr.falselist = Merge(st.s[st.top - 3].attr.falselist,
-		st.s[st.top].attr.falselist);
-}
 
-void bool_exp_not(Item* it)
-{
-	it->attr.truelist = st.s[st.top].attr.falselist;
-	it->attr.falselist = st.s[st.top].attr.truelist;
-}
 
-void bool_exp_parentheses(Item* it)
-{
-	it->attr.truelist = st.s[st.top - 1].attr.truelist;
-	it->attr.falselist = st.s[st.top - 1].attr.falselist;
-}
-
-void bool_exp_true(Item *it)
-{
-	it->attr.truelist = MakeList(GetNextQuad());
-	CodeLine codeLine(F_GOTO, "", "", "", "-");
-	GenCode(codeLine);
-}
-
-void bool_exp_false(Item *it)
-{
-	it->attr.falselist = MakeList(GetNextQuad());
-	CodeLine codeLine(F_GOTO,"", "", "", "-");
-	GenCode(codeLine);
-}
-
-void bool_exp_relop(Item* it)
-{
-	int next_quad = GetNextQuad();
-	it->attr.truelist = MakeList(next_quad);
-	it->attr.falselist = MakeList(next_quad + 1);
-
-	char* E1_addr = st.s[st.top - 2].attr.name_addr;
-	char* E2_addr = st.s[st.top].attr.name_addr;
-	int op_type = st.s[st.top-1].attr.type;
-
-	CodeLine codeLine(F_IF_E1_RELOP_E2_GOTO, GetLiteral(op_type), E1_addr, E2_addr, "-");
-	GenCode(codeLine);
-}
-
-/*		control statement	*/	
-void statement_if_then(Item* it)
-{
-	BackPatch(st.s[st.top - 3].attr.truelist, st.s[st.top - 1].attr.quad);
-	it->attr.nextlist = Merge(st.s[st.top - 3].attr.nextlist, st.s[st.top].attr.nextlist);
-}
-
-void statement_if_then_else(Item* it)
-{
-	BackPatch(st.s[st.top - 7].attr.truelist, st.s[st.top - 5].attr.quad);
-	BackPatch(st.s[st.top - 7].attr.falselist, st.s[st.top - 1].attr.quad);
-	it->attr.nextlist = Merge(st.s[st.top - 4].attr.nextlist,
-		Merge(st.s[st.top - 3].attr.nextlist, st.s[st.top].attr.nextlist));
-}
-
-void statement_while(Item* it)
-{
-	BackPatch(st.s[st.top].attr.nextlist, st.s[st.top - 4].attr.quad);
-	BackPatch(st.s[st.top - 3].attr.truelist, st.s[st.top - 1].attr.quad);
-	it->attr.nextlist = st.s[st.top - 3].attr.falselist;
-
-	CodeLine codeLine(F_GOTO, "", "", "", IntToStr(st.s[st.top - 4].attr.quad));
-	GenCode(codeLine);
-}
-
-void N_if(Item* it)
-{
-	it->attr.nextlist = MakeList(GetNextQuad());
-	CodeLine codeLine(F_GOTO, "", "", "", "-");
-	GenCode(codeLine);
-}
-
-void statement_for(Item* it)
-{
-	int M_again = st.s[st.top - 1].attr.again;
-	BackPatch(st.s[st.top].attr.nextlist, M_again);
-	GenCode(CodeLine(F_GOTO, "", "", "", IntToStr(M_again)));
-	it->attr.nextlist = st.s[st.top - 1].attr.nextlist;
-}
-
-void M_For(Item * it)
-{
-	it->attr.addr = st.s[st.top - 8].attr.addr;
-	GenCode(CodeLine(F_Z_ASS_X, "", st.s[st.top - 6].attr.addr, "", it->attr.addr));
-	char* T1 = GetNewTmp();
-	GenCode(CodeLine(F_Z_ASS_X, "", st.s[st.top - 4].attr.addr, "", T1));
-	char* T2 = GetNewTmp();
-	GenCode(CodeLine(F_Z_ASS_X, "", st.s[st.top - 2].attr.addr, "", T2));
-
-	int q = GetNextQuad();
-	GenCode(CodeLine(F_GOTO, "", "", "", IntToStr(q+2)));
-
-	it->attr.again = q + 1;
-	GenCode(CodeLine(F_Z_ASS_X_OP_Y, "+", it->attr.addr, T2, it->attr.addr));
-	it->attr.nextlist = MakeList(GetNextQuad());
-	GenCode(CodeLine(F_IF_E_GOTO, ">", it->attr.addr, T1, "-"));
-}
 
 void statement_begin_slist_end(Item* it)
 {
@@ -276,9 +165,9 @@ void exp_item_id(Item* it)
 /*		call and ret */
 void statement_call_id_exp_list(Item* it)
 {
-	CodeLine codeLine("", "", "", "");
+	CodeLine codeLine(F_PARAM, "", "", "", "");
 	int n = param_queue.size();
-	codeLine.fmt = F_PARAM;
+
 	while (!param_queue.empty())
 	{
 		codeLine.result = param_queue.front();
@@ -286,7 +175,7 @@ void statement_call_id_exp_list(Item* it)
 	}
 
 	codeLine.fmt = F_CALL;
-	codeLine.arg1 = st.s[st.top - 3].attr.addr;
+	codeLine.arg1 = st.s[st.top - 3].attr.name_addr;
 	codeLine.arg2 = IntToStr(n);
 	GenCode(codeLine);
 }

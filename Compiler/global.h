@@ -3,8 +3,11 @@
 
 #include <stdlib.h>
 #include <vector>
-#include "hash_table.h"
+#include <map>
+#include <string>
+
 #include "general_stack.h"
+#include "symbol.h"
 
 const int kReadBufferSize = 4096;
 const int kTokenMaxLen = 128;
@@ -34,6 +37,7 @@ typedef enum TokenType
 	T_OF, T_OR, T_PACKED, T_PROCEDURE, T_PROGRAM, T_RECORD, T_REPEAT, T_SET, T_THEN, T_TO,
 	T_TYPE, T_UNTIL, T_VAR, T_WHILE, T_WITH,
 	T_INT_TYPE, T_REAL_TYPE, 
+	T_TRUE, T_FLASE,
 
 	T_ADD, T_SUB, T_MUL, T_ADDE, T_SUBE, T_MULE, T_DIVE, T_POW,
 	T_EQL, T_NEQ, T_GT, T_GTE, T_LT, T_LTE,
@@ -42,29 +46,27 @@ typedef enum TokenType
 	T_INT, T_REAL, 
 
 	T_ID, T_STR, 
-	
 	T_FINAL,			//Do not add this to compiler_bench
 
-	V_start = T_FINAL + 1,
-	V_program, V_subprogram_declarations, V_identifier_list, V_declarations, V_declaration,
-	V_type, V_standard_type, V_subprogram_declaration, V_subprogram_head, V_arguments,
-	V_parameter_list, V_optional_statements, V_statement_list, V_statement, V_procedure_statement,
-	V_compound_statement, V_variable, V_expression, V_expression_list, V_simple_expression,
-	V_term, V_factor, V_sign, V_relop, V_addop,
-	V_mulop, V_num,
+	V_program,
+	V_subprogram_declarations, V_identifier_list, V_declarations, V_declaration, V_type,
+	V_standard_type, V_subprogram_declaration, V_subprogram_head, V_arguments, V_parameter_list,
+	V_optional_statements, V_statement_list, V_statement, V_procedure_statement, V_compound_statement,
+	V_return_statement, V_variable, V_exp_item, V_bool_exp_item, V_bool_exp,
+	V_expression_list, V_term, V_factor, V_sign, V_relop,
+	V_addop, V_mulop, V_num, V_M_FOR, V_M_quad,
+	V_N_IF, V_start,
 }TokenType;
 
-static char* keyword_list[] = {
+static char* word_list[] = {
 	"and", "array", "begin", "case", "const", "div", "do", "downto", "else",
 	"end", "file", "for", "function", "goto", "if", "in", "label",
 	"mod", "nil", "not", "of", "or", "packed", "procedure", "program",
 	"record", "repeat", "set", "then", "to", "type", "until", "var",
 	"while", "with",
 	"integer", "real",
-	"true", "false"
-};
+	"true", "false",
 
-static char* var_list[] = {
 	"+", "-", "*", "+=", "-=", "*=", "/=", "**",		//8, 0
 	//T_EQL, T_NEQ, T_GT, T_GTE, T_LT, T_LTE,
 	"=", "<>", ">", ">=", "<", "<=",					//6, 8
@@ -72,19 +74,20 @@ static char* var_list[] = {
 	",", ":", ";", "/", "!", "?",						//6, 14
 	//T_SHARP, T_DOT, T_CONT, T_LPAR, T_RPAR, T_LBRKPAR, T_RBRKPAR, T_ASS, T_DOUBLE_DOT,
 	"#", ".", "&", "(", ")", "[", "]", ":=", "..",		//9, 20
-	//T_INT, T_REAL, T_ID, T_STR, T_FINAL
+	//T_INT, T_REAL, T_TRUE, T_FLASE, T_ID, T_STR, T_FINAL
 	"int_num", "real_num", 
-	"true", "false"
 	
-	"id", "string", "$",			//5, 29
+	"id", "string", 	
+	"$",			//5, 29
 
-	"start",											//1, 34
-	"program", "subprogram_declarations", "identifier_list", "declarations", "declaration", //5, 35
-	"type", "standard_type", "subprogram_declaration", "subprogram_head", "arguments",
-	"parameter_list", "optional_statements", "statement_list", "statement", "procedure_statement",
-	"compound_statement", "variable", "expression", "expression_list", "simple_expression",
-	"term", "factor", "sign", "relop", "addop",
-	"mulop", "num",
+	"program",
+	"subprogram_declarations", "identifier_list", "declarations", "declaration", "type",
+	"standard_type", "subprogram_declaration", "subprogram_head", "arguments", "parameter_list",
+	"optional_statements", "statement_list", "statement", "procedure_statement", "compound_statement",
+	"return_statement", "variable", "exp_item", "bool_exp_item", "bool_exp",
+	"expression_list", "term", "factor", "sign", "relop",
+	"addop", "mulop", "num", "M_FOR", "M_quad",
+	"N_IF", "start",
 };
 
 typedef enum ParserStateType
@@ -92,16 +95,6 @@ typedef enum ParserStateType
 	Acc = 1023, Fail = 254,
 }ParserStateType;
 
-typedef struct _KeywordItem 
-{
-	char* name;
-	int type;
-	_KeywordItem(char* item_name, int item_type)
-	{
-		name = item_name;
-		type = item_type;
-	}
-}KeywordItem;
 
 typedef struct _ErrorItem
 {
@@ -157,9 +150,9 @@ typedef struct _BackpatchListItem
 
 typedef struct _ItemAttribute
 {
-	int addr;
-	int width;
+	int addr;		//addr(offset in symbol table)
 	int offset;
+	int width;
 
 	TokenType type;
 	char* name_addr;
@@ -168,10 +161,18 @@ typedef struct _ItemAttribute
 	
 	int quad;
 	int again;
+	
+	std::vector<char*> param_vec;
+
 	BackpatchListItem* truelist;
 	BackpatchListItem* falselist;
 	BackpatchListItem* nextlist;
-	struct _ItemAttribute(){}
+	struct _ItemAttribute()
+	{
+		name_addr = "**";
+		truelist = falselist = nextlist = NULL;
+		param_vec.clear();
+	}
 }ItemAttribute;
 
 typedef struct _Item
@@ -180,6 +181,44 @@ typedef struct _Item
 	ItemAttribute attr;
 	struct _Item(){}
 }Item;
+
+typedef enum _Format
+{
+	F_Z_ASS_X_OP_Y, F_Z_ASS_OP_Y, F_Z_ASS_X,
+	F_IF_E1_RELOP_E2_GOTO, F_GOTO, F_IF_E_GOTO,
+	F_PARAM, F_CALL,
+}Format;
+
+typedef struct _CodeLine
+{
+	Format fmt;
+	char* arg1 = new char[INTER_CODE_OP_LEN];
+	char* arg2 = new char[INTER_CODE_OP_LEN];
+	char* op = new char[INTER_CODE_OP_LEN];
+	char* result = new char[INTER_CODE_OP_LEN];
+
+	_CodeLine(Format _fmt, char* _op, char* _arg1, char* _arg2, char* _result)
+	{
+		fmt = _fmt;
+		strcpy(arg1, _arg1);
+		strcpy(arg2, _arg2);
+		strcpy(op, _op);
+		strcpy(result, _result);
+	}
+}CodeLine;
+
+typedef struct _Code
+{
+	int label[MAX_INTERCODE_LINE];
+	std::vector<CodeLine> code;
+
+	int crt_quad;		//the last valid quad index 
+	_Code()
+	{
+		code.clear();
+		crt_quad = -1;
+	}
+}Code;
 
 bool static IsHex(char ch)
 {
@@ -216,20 +255,32 @@ char* GetLiteral(int index);
 
 char* IntToStr(int i);
 
+void PrintIntercode();
+
 extern int line_number;
 extern bool fatel_error;
 extern int tmp_count;
 
-extern HashTable<char*, int> keyword_table;
+extern std::map<std::string, int> keyword_table;
 
 extern char token_name_arr[kTokenNameArrLen];
 extern int token_name_arr_tail;
 
-extern std::vector<int> const_int_vec;
-extern std::vector<double> const_real_vec;
-
 extern std::vector<TokenItem> token_vec;
 extern std::vector<ErrorItem> error_vec;
 extern GeneralStack<Item> st;
+
+extern Code intercode;
+
+typedef struct _Production
+{
+	int left;
+	char description[200];
+	void(*f)(Item *);
+}Production;
+
+extern Production production[];
+
+
 
 #endif

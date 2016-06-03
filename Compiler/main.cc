@@ -5,6 +5,7 @@
 
 int main()
 {
+	printf("%d", GetArrayLen(word_list));
 	Scanner scanner;
 	scanner.Init();
 	scanner.ScanToken();

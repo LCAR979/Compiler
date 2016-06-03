@@ -30,15 +30,15 @@
     <ClCompile Include="translation.cc">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="symbol.cc">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="scanner.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="general_stack.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="hash_table.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="parser.h">
@@ -51,6 +51,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="symbol.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="production.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -74,6 +77,9 @@
       <Filter>资源文件</Filter>
     </Text>
     <Text Include="output\token.txt">
+      <Filter>资源文件</Filter>
+    </Text>
+    <Text Include="output\intercode.txt">
       <Filter>资源文件</Filter>
     </Text>
   </ItemGroup>

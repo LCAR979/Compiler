@@ -6,8 +6,6 @@
 #include <vector>
 #include "scanner.h"
 #include "global.h"
-#include "hash_table.h"
-
 
 char Scanner::MoveForwardGetChar()
 {
@@ -40,13 +38,11 @@ char Scanner::MoveForwardGetChar()
 void Scanner::DealInt(int int_val)
 {
 	token_vec.push_back(TokenItem(T_INT, int_val));
-	//const_int_vec.push_back(tokenval);
 }
 
 void Scanner::DealReal(double real_val)
 {
 	token_vec.push_back(TokenItem(T_REAL, real_val));
-	//const_real_vec.push_back(tokenval);
 }
 
 //int* Scanner::InstallID(char* crt_token_name, TokenType type)
@@ -114,9 +110,8 @@ void Scanner::Init()
 
 	memset(token_name_arr, 0, sizeof(token_name_arr));
 
-	for (int i = 0; i < GetArrayLen(keyword_list); i++)
-		keyword_table.Insert(keyword_list[i], TokenType(i));
-
+	for (int i = 0; i < T_ADD; i++)
+		keyword_table[std::string(word_list[i])] = TokenType(i);
 }
 
 void Scanner::Close()
@@ -130,7 +125,6 @@ void Scanner::ScanIdnAndKWord()
 {
 	char tmp_token_name[kTokenMaxLen];
 	int tmp_token_name_tail = 0;
-	int type;
 	memset(tmp_token_name, 0, sizeof(tmp_token_name));
 	while (isalpha(ch_) || isdigit(ch_) || ch_ == '$' || ch_ == '_')
 	{
@@ -138,8 +132,9 @@ void Scanner::ScanIdnAndKWord()
 		ch_ = MoveForwardGetChar();
 	}
 	MoveBack();
-	if ((type = keyword_table.Find(tmp_token_name)) != NULL)
-		DealToken((TokenType)type);
+
+	if (keyword_table.end() != keyword_table.find(std::string(tmp_token_name)))
+		DealToken((TokenType)keyword_table[tmp_token_name]);
 	else
 		DealToken(T_ID);
 	return;

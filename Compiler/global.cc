@@ -1,24 +1,24 @@
 #include <string.h>
 #include <vector>
 #include "global.h"
-#include "hash_table.h"
+#include "production.h"
+#include "translation.h"
 
 int line_number = 0;
 bool fatel_error = false;
 int tmp_count = 0;
 
-HashTable<char*, int> keyword_table;
+std::map<std::string, int> keyword_table;
 
 char token_name_arr[kTokenNameArrLen];
 int token_name_arr_tail = 0;
 
 
-std::vector<int> const_int_vec;
-std::vector<double> const_real_vec;
-
 std::vector<TokenItem> token_vec;
 std::vector<ErrorItem> error_vec;
 GeneralStack<Item> st;
+
+Code intercode;
 
 void ErrorHandle(char* err_msg)
 {
@@ -48,16 +48,7 @@ void ErrorPrint()
 
 char* GetLiteral(int index)
 {
-	if (index > T_REAL_TYPE && index < V_start)
-		return var_list[index - T_REAL_TYPE - 1];
-	else if (index >= V_start)
-		return var_list[index - T_REAL_TYPE];
-	//+1 is because there cannot see T_FINAL in compiler_workbench
-	//V_start is 71 here, while 70 for compiler_workbench
-	//Compiler workbench does leave a index deliberately for the symbol of #/$/final of input string
-	//between the terminal part and nonterminal part
-	else
-		return keyword_list[index];
+	return word_list[index];
 }
 
 char tmp_int_buf[INTER_CODE_OP_LEN];
@@ -68,3 +59,119 @@ char* IntToStr(int i)
 	sprintf(tmp_int_buf, format, i);
 	return tmp_int_buf;
 }
+
+void PrintIntercode()
+{
+	FILE *fp = fopen("output\\intercode.txt", "w");
+	std::vector<CodeLine>::iterator it;
+	for (it = intercode.code.begin(); it != intercode.code.end(); it++)
+	{
+		switch (it->fmt)
+		{
+		case F_IF_E1_RELOP_E2_GOTO:
+			fprintf(fp, "if %s %s %s then goto %s\n",
+				it->arg1, it->op, it->arg2, it->result);
+			break;
+		case F_IF_E_GOTO:
+			fprintf(fp, "if %s then goto %s\n", it->arg1, it->result);
+			break;
+		case F_GOTO:
+			fprintf(fp, "goto %s\n", it->result);
+			break;
+		case F_PARAM:
+			fprintf(fp, "param %s\n", it->result);
+			break;
+		case F_CALL:
+			fprintf(fp, "call %s %s\n", it->arg1, it->arg2);
+			break;
+		case F_Z_ASS_X:
+			fprintf(fp, "%s := %s\n", it->result, it->arg1);
+			break;
+		case F_Z_ASS_X_OP_Y:
+			fprintf(fp, "%s := %s %s %s\n", it->result, it->arg1, it->op, it->arg2);
+			break;
+		case F_Z_ASS_OP_Y:
+			fprintf(fp, "%s := %s %s\n", it->result, it->op, it->arg1);
+			break;
+		}
+	}
+}
+
+ extern Production production[] =
+ {
+	 { 0, "start -> program ", start_program },
+	 { 1, "program -> T_PROGRAM T_ID T_LPAR identifier_list T_RPAR T_SEMICL   declarations   subprogram_declarations   compound_statement T_DOT", program },
+	 { 2, "identifier_list -> T_ID ", identifier_list_id },
+	 { 3, "identifier_list -> identifier_list T_COMMA T_ID ", identifier_list_list_id },
+	 { 4, "declarations -> T_VAR declaration T_SEMICL ", declarations },
+	 { 5, "declarations -> ", declarations_null },
+	 { 6, "declaration -> declaration T_SEMICL identifier_list T_COLON type ", declaration_declaration_identifier },
+	 { 7, "declaration ->   identifier_list T_COLON type ", declaration_identifier },
+	 { 8, "type -> standard_type ", type_standard },
+	 { 9, "type ->T_ARRAY T_LBRKPAR T_INT T_DOUBLE_DOT T_INT T_RBRKPAR T_OF standard_type ", type_array },
+	 { 10, "standard_type -> T_INT_TYPE ", standard_type_int },
+	 { 11, "standard_type -> T_REAL_TYPE ", standard_type_real },
+	 { 12, "subprogram_declarations -> subprogram_declarations   subprogram_declaration T_SEMICL ", subprogram_declarations_sub_declarations },
+	 { 13, "subprogram_declarations -> ", subprogram_declarations_null },
+	 { 14, "subprogram_declaration -> subprogram_head  declarations  compound_statement ", subprogram_declaration_head_dec_compound },
+	 { 15, "subprogram_head -> T_FUNCTION T_ID arguments T_COLON standard_type T_SEMICL ", subprogram_head_function },
+	 { 16, "subprogram_head ->   T_PROCEDURE T_ID arguments T_SEMICL ", subprogram_head_procedure },
+	 { 17, "arguments -> T_LPAR parameter_list T_RPAR ", arguments_param_list },
+	 { 18, "arguments -> ", arguments_null },
+	 { 19, "parameter_list -> identifier_list T_COLON type ", parma_list_id_list },
+	 { 20, "parameter_list ->  parameter_list T_SEMICL identifier_list T_COLON type ", parma_list_parma_list_id },
+	 { 21, "compound_statement -> T_BEGIN optional_statements T_END ", compound_statement },
+	 { 22, "optional_statements -> statement_list ", optional_statements_st_list },
+	 { 23, "optional_statements -> ", optional_statements_null },
+	 { 24, "statement_list -> statement", statement_list_statement },
+	 { 25, "statement_list -> statement_list T_SEMICL M_quad statement ", statement_list_st_list_statement },
+	 { 26, "statement -> variable T_ASS exp_item", statement_var_assign },
+	 { 27, "statement -> procedure_statement", statement_procedure_st },
+	 { 28, "statement -> compound_statement", statement_compound_st },
+	 { 29, "statement -> T_IF bool_exp T_THEN M_quad statement T_SEMICL", statement_if_then },
+	 { 30, "statement -> T_IF bool_exp T_THEN M_quad statement T_ELSE N_IF M_quad statement", statement_if_then_else },
+	 { 31, "N_IF -> ", N_if },
+	 { 32, "M_quad -> ", M_quad },
+	 { 33, "statement -> T_WHILE M_quad bool_exp T_DO M_quad statement ", statement_while },
+	 { 34, "statement -> T_FOR T_ID T_ASS exp_item T_TO exp_item T_DO M_FOR statement", statement_for },
+	 { 35, "M_FOR -> ", M_for },
+	 { 36, "bool_exp -> bool_exp_item T_OR M_quad bool_exp", bool_exp_or },
+	 { 37, "bool_exp -> bool_exp_item T_AND M_quad bool_exp", bool_exp_and },
+	 { 38, "bool_exp -> T_NOT bool_exp", bool_exp_not },
+	 { 39, "bool_exp -> T_LPAR bool_exp T_RPAR", bool_exp_parentheses },
+	 { 40, "bool_exp -> bool_exp_item", bool_exp_boolexpitem },
+	 { 41, "bool_exp_item -> exp_item relop exp_item", bool_exp_relop },
+	 { 42, "bool_exp_item -> T_TRUE", bool_exp_true },
+	 { 43, "bool_exp_item -> T_FLASE", bool_exp_false },
+	 { 44, "variable -> T_ID ", var_id },
+	 { 45, "variable -> T_ID T_LBRKPAR exp_item T_RBRKPAR ", var_array_element },
+	 { 46, "procedure_statement -> T_ID T_LPAR T_RPAR ", procedure_st_func_call_no_param },
+	 { 47, "procedure_statement -> T_ID T_LPAR expression_list T_RPAR ", procedure_st_func_call_param },
+	 { 48, "expression_list -> exp_item ", expressionlist_expitem },
+	 { 49, "expression_list -> expression_list T_COMMA exp_item ", expressionlist_expression_list },
+	 { 50, "exp_item -> term ", expitem_term },
+	 { 51, "exp_item -> sign term ", expitem_signterm },
+	 { 52, "exp_item -> exp_item addop term ", expitem_addop },
+	 { 53, "term -> factor ", term_factor },
+	 { 54, "term -> term mulop factor ", term_mulop },
+	 { 55, "factor -> T_ID ", factor_id },
+	 { 56, "factor -> T_ID T_LPAR expression_list T_RPAR ", factor_func_call_param },
+	 { 57, "factor -> num ", factor_num },
+	 { 58, "factor -> T_LPAR exp_item T_RPAR  ", factor_exp_item },
+
+	 { 59, "sign -> T_ADD", pass_op },
+	 { 60, "sign -> T_SUB", pass_op },
+	 { 61, "addop -> T_ADD", pass_op },
+	 { 62, "addop -> T_SUB", pass_op },
+	 { 63, "mulop -> T_MUL", pass_op },
+	 { 64, "mulop -> T_DIV", pass_op },
+	 { 65, "relop -> T_EQL", pass_op },
+	 { 66, "relop -> T_NEQ", pass_op },
+	 { 67, "relop -> T_GT", pass_op },
+	 { 68, "relop -> T_GTE", pass_op },
+	 { 69, "relop -> T_LT", pass_op },
+	 { 70, "relop -> T_LTE", pass_op },
+
+	 { 71, "num -> T_INT", num_int },
+	 { 72, "num -> T_REAL", num_real },
+ };
