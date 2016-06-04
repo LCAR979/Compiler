@@ -1,13 +1,14 @@
 #ifndef __GLOBAL_H__
 #define __GLOBAL_H__
 
+using namespace std;
+
 #include <stdlib.h>
 #include <vector>
 #include <map>
 #include <string>
 
 #include "general_stack.h"
-#include "symbol.h"
 
 const int kReadBufferSize = 4096;
 const int kTokenMaxLen = 128;
@@ -18,7 +19,6 @@ const int kErrorMaxNum = 1024;
 
 const int kMaxProductionRightLen = 20;
 const int kMaxProductionNum = 100;
-
 
 const int kStateTypeNum = 200;
 
@@ -55,7 +55,7 @@ typedef enum TokenType
 	V_return_statement, V_variable, V_exp_item, V_bool_exp_item, V_bool_exp,
 	V_expression_list, V_term, V_factor, V_sign, V_relop,
 	V_addop, V_mulop, V_num, V_M_FOR, V_M_quad,
-	V_N_IF, V_start,
+	V_N_IF, V_M_function, V_M_procedure, V_start,
 }TokenType;
 
 static char* word_list[] = {
@@ -87,14 +87,14 @@ static char* word_list[] = {
 	"return_statement", "variable", "exp_item", "bool_exp_item", "bool_exp",
 	"expression_list", "term", "factor", "sign", "relop",
 	"addop", "mulop", "num", "M_FOR", "M_quad",
-	"N_IF", "start",
+	"N_IF", "M_function", "M_procedure", "start",
+
 };
 
 typedef enum ParserStateType
 {
 	Acc = 1023, Fail = 254,
 }ParserStateType;
-
 
 typedef struct _ErrorItem
 {
@@ -148,30 +148,38 @@ typedef struct _BackpatchListItem
 	struct _BackpatchListItem* next;
 }BackpatchListItem;
 
+typedef enum _SymType
+{
+	Int, Real, String, Char, Array, Func, SymTableType
+}SymType;
+
 typedef struct _ItemAttribute
 {
 	int addr;		//addr(offset in symbol table)
-	int offset;
-	int width;
 
-	TokenType type;
-	char* name_addr;
+	TokenType token_type;
+	SymType type;
+	string  name_addr;
 	int int_val;
 	double real_val;
 	
 	int quad;
 	int again;
 	
-	std::vector<char*> param_vec;
+	vector<string> idn_vec;
 
 	BackpatchListItem* truelist;
 	BackpatchListItem* falselist;
 	BackpatchListItem* nextlist;
+	BackpatchListItem* title;
 	struct _ItemAttribute()
 	{
-		name_addr = "**";
+		name_addr = string("**");
 		truelist = falselist = nextlist = NULL;
-		param_vec.clear();
+		idn_vec.clear();
+		int_val = 0;
+		real_val = 0;
+
 	}
 }ItemAttribute;
 
@@ -179,38 +187,45 @@ typedef struct _Item
 {
 	int state;
 	ItemAttribute attr;
-	struct _Item(){}
+	struct _Item()
+	{
+		attr.name_addr = "**";
+		attr.truelist = attr.falselist = attr.nextlist = NULL;
+		attr.idn_vec.clear();
+		attr.int_val = 0;
+		attr.real_val = 0;
+	}
 }Item;
 
 typedef enum _Format
 {
 	F_Z_ASS_X_OP_Y, F_Z_ASS_OP_Y, F_Z_ASS_X,
 	F_IF_E1_RELOP_E2_GOTO, F_GOTO, F_IF_E_GOTO,
-	F_PARAM, F_CALL,
+	F_PARAM, F_CALL_PARAM_N, F_RET, F_TITLE_FUNC, F_TITLE_PROCEDURE
 }Format;
 
 typedef struct _CodeLine
 {
 	Format fmt;
-	char* arg1 = new char[INTER_CODE_OP_LEN];
-	char* arg2 = new char[INTER_CODE_OP_LEN];
-	char* op = new char[INTER_CODE_OP_LEN];
-	char* result = new char[INTER_CODE_OP_LEN];
+	string arg1 ;
+	string arg2 ;
+	string op;
+	string result;
 
-	_CodeLine(Format _fmt, char* _op, char* _arg1, char* _arg2, char* _result)
+	_CodeLine(Format _fmt, string _op, string _arg1, string _arg2, string _result)
 	{
 		fmt = _fmt;
-		strcpy(arg1, _arg1);
-		strcpy(arg2, _arg2);
-		strcpy(op, _op);
-		strcpy(result, _result);
+		op = _op;
+		arg1 = _arg1;
+		arg2 = _arg2;
+		result = _result;
 	}
 }CodeLine;
 
 typedef struct _Code
 {
 	int label[MAX_INTERCODE_LINE];
-	std::vector<CodeLine> code;
+	vector<CodeLine> code;
 
 	int crt_quad;		//the last valid quad index 
 	_Code()
@@ -254,6 +269,7 @@ void ErrorPrint();
 char* GetLiteral(int index);
 
 char* IntToStr(int i);
+char* RealToStr(double i);
 
 void PrintIntercode();
 
@@ -261,14 +277,14 @@ extern int line_number;
 extern bool fatel_error;
 extern int tmp_count;
 
-extern std::map<std::string, int> keyword_table;
+extern map<std::string, int> keyword_table;
 
 extern char token_name_arr[kTokenNameArrLen];
 extern int token_name_arr_tail;
 
-extern std::vector<TokenItem> token_vec;
-extern std::vector<ErrorItem> error_vec;
-extern GeneralStack<Item> st;
+extern vector<TokenItem> token_vec;
+extern vector<ErrorItem> error_vec;
+extern GeneralStack<Item*> st;
 
 extern Code intercode;
 
@@ -280,6 +296,7 @@ typedef struct _Production
 }Production;
 
 extern Production production[];
+
 
 
 

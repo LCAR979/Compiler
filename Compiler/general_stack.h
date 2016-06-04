@@ -13,6 +13,7 @@ public:
 	GeneralStack()
 	{
 		top = -1;
+		memset(s, 0, sizeof(s));
 	}
 	void Push(T item)
 	{

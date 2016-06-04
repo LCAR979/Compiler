@@ -16,7 +16,7 @@ int token_name_arr_tail = 0;
 
 std::vector<TokenItem> token_vec;
 std::vector<ErrorItem> error_vec;
-GeneralStack<Item> st;
+GeneralStack<Item*> st;
 
 Code intercode;
 
@@ -60,47 +60,72 @@ char* IntToStr(int i)
 	return tmp_int_buf;
 }
 
+char tmp_real_buf[INTER_CODE_OP_LEN*2];
+char* RealToStr(double i)
+{
+	memset(tmp_real_buf, 0, sizeof(tmp_real_buf));
+	char *format = "%d";
+	sprintf(tmp_real_buf, format, i);
+	return tmp_real_buf;
+}
+
 void PrintIntercode()
 {
 	FILE *fp = fopen("output\\intercode.txt", "w");
 	std::vector<CodeLine>::iterator it;
+	int line_count = 0;
 	for (it = intercode.code.begin(); it != intercode.code.end(); it++)
 	{
+		fprintf(fp, "%d\t", line_count++);
+		fprintf(fp, "(%8s, %8s, %8s, %8s)\t\t\t", it->op.c_str(), it->arg1.c_str(),
+			it->arg2.c_str(), it->result.c_str());
 		switch (it->fmt)
 		{
 		case F_IF_E1_RELOP_E2_GOTO:
-			fprintf(fp, "if %s %s %s then goto %s\n",
-				it->arg1, it->op, it->arg2, it->result);
+			fprintf(fp, "if %s %s %s then goto %s",
+				it->arg1.c_str(), it->op.c_str(), it->arg2.c_str(), it->result.c_str());
 			break;
 		case F_IF_E_GOTO:
-			fprintf(fp, "if %s then goto %s\n", it->arg1, it->result);
+			fprintf(fp, "if %s then goto %s", it->arg1.c_str(), it->result.c_str());
 			break;
 		case F_GOTO:
-			fprintf(fp, "goto %s\n", it->result);
+			fprintf(fp, "goto %s", it->result.c_str());
 			break;
 		case F_PARAM:
-			fprintf(fp, "param %s\n", it->result);
+			fprintf(fp, "param %s", it->arg1.c_str());
 			break;
-		case F_CALL:
-			fprintf(fp, "call %s %s\n", it->arg1, it->arg2);
+		case F_CALL_PARAM_N:
+			fprintf(fp, "call %s %s", it->arg1.c_str(), it->arg2.c_str());
 			break;
 		case F_Z_ASS_X:
-			fprintf(fp, "%s := %s\n", it->result, it->arg1);
+			fprintf(fp, "%s := %s", it->result.c_str(), it->arg1.c_str());
 			break;
 		case F_Z_ASS_X_OP_Y:
-			fprintf(fp, "%s := %s %s %s\n", it->result, it->arg1, it->op, it->arg2);
+			fprintf(fp, "%s := %s %s %s", it->result.c_str(), it->arg1.c_str(), it->op.c_str(), it->arg2.c_str());
 			break;
 		case F_Z_ASS_OP_Y:
-			fprintf(fp, "%s := %s %s\n", it->result, it->op, it->arg1);
+			fprintf(fp, "%s := %s %s", it->result.c_str(), it->op.c_str(), it->arg1.c_str());
+			break;
+		case F_TITLE_FUNC:
+			fprintf(fp, "FUNC %s", it->result.c_str());
+			break;
+		case F_TITLE_PROCEDURE:
+			fprintf(fp, "PROC %s", it->result.c_str());
+			break;
+		case F_RET:
+			fprintf(fp, "RET");
 			break;
 		}
+		fprintf(fp, "\n");
+		
 	}
+	fclose(fp);
 }
 
  extern Production production[] =
  {
 	 { 0, "start -> program ", start_program },
-	 { 1, "program -> T_PROGRAM T_ID T_LPAR identifier_list T_RPAR T_SEMICL   declarations   subprogram_declarations   compound_statement T_DOT", program },
+	 { 1, "program -> T_PROGRAM T_ID T_LPAR identifier_list T_RPAR T_SEMICL   declarations M_quad   subprogram_declarations M_quad   compound_statement T_DOT M_quad", program },
 	 { 2, "identifier_list -> T_ID ", identifier_list_id },
 	 { 3, "identifier_list -> identifier_list T_COMMA T_ID ", identifier_list_list_id },
 	 { 4, "declarations -> T_VAR declaration T_SEMICL ", declarations },
@@ -111,11 +136,11 @@ void PrintIntercode()
 	 { 9, "type ->T_ARRAY T_LBRKPAR T_INT T_DOUBLE_DOT T_INT T_RBRKPAR T_OF standard_type ", type_array },
 	 { 10, "standard_type -> T_INT_TYPE ", standard_type_int },
 	 { 11, "standard_type -> T_REAL_TYPE ", standard_type_real },
-	 { 12, "subprogram_declarations -> subprogram_declarations   subprogram_declaration T_SEMICL ", subprogram_declarations_sub_declarations },
+	 { 12, "subprogram_declarations -> subprogram_declarations M_quad   subprogram_declaration T_SEMICL ", subprogram_declarations_sub_declarations },
 	 { 13, "subprogram_declarations -> ", subprogram_declarations_null },
 	 { 14, "subprogram_declaration -> subprogram_head  declarations  compound_statement ", subprogram_declaration_head_dec_compound },
-	 { 15, "subprogram_head -> T_FUNCTION T_ID arguments T_COLON standard_type T_SEMICL ", subprogram_head_function },
-	 { 16, "subprogram_head ->   T_PROCEDURE T_ID arguments T_SEMICL ", subprogram_head_procedure },
+	 { 15, "subprogram_head -> T_FUNCTION M_function T_ID arguments T_COLON standard_type T_SEMICL ", subprogram_head_function },
+	 { 16, "subprogram_head ->   T_PROCEDURE M_procedure T_ID arguments T_SEMICL ", subprogram_head_procedure },
 	 { 17, "arguments -> T_LPAR parameter_list T_RPAR ", arguments_param_list },
 	 { 18, "arguments -> ", arguments_null },
 	 { 19, "parameter_list -> identifier_list T_COLON type ", parma_list_id_list },
@@ -133,7 +158,7 @@ void PrintIntercode()
 	 { 31, "N_IF -> ", N_if },
 	 { 32, "M_quad -> ", M_quad },
 	 { 33, "statement -> T_WHILE M_quad bool_exp T_DO M_quad statement ", statement_while },
-	 { 34, "statement -> T_FOR T_ID T_ASS exp_item T_TO exp_item T_DO M_FOR statement", statement_for },
+	 { 34, "statement -> T_FOR variable M_quad T_ASS exp_item T_TO exp_item T_DO M_FOR statement", statement_for },
 	 { 35, "M_FOR -> ", M_for },
 	 { 36, "bool_exp -> bool_exp_item T_OR M_quad bool_exp", bool_exp_or },
 	 { 37, "bool_exp -> bool_exp_item T_AND M_quad bool_exp", bool_exp_and },
@@ -158,7 +183,6 @@ void PrintIntercode()
 	 { 56, "factor -> T_ID T_LPAR expression_list T_RPAR ", factor_func_call_param },
 	 { 57, "factor -> num ", factor_num },
 	 { 58, "factor -> T_LPAR exp_item T_RPAR  ", factor_exp_item },
-
 	 { 59, "sign -> T_ADD", pass_op },
 	 { 60, "sign -> T_SUB", pass_op },
 	 { 61, "addop -> T_ADD", pass_op },
@@ -171,7 +195,9 @@ void PrintIntercode()
 	 { 68, "relop -> T_GTE", pass_op },
 	 { 69, "relop -> T_LT", pass_op },
 	 { 70, "relop -> T_LTE", pass_op },
-
 	 { 71, "num -> T_INT", num_int },
 	 { 72, "num -> T_REAL", num_real },
+	 { 73, "M_function -> ", M_function },
+	 { 74, "M_procedure -> ", M_procedure },
+
  };

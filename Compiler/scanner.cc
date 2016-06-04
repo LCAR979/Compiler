@@ -69,7 +69,9 @@ void Scanner::DealToken(TokenType type)
 	}
 	if (type == T_ID)
 	{
-		memcpy(token_name_arr + token_name_arr_tail, crt_token_name, strlen(crt_token_name));
+		int len = strlen(crt_token_name);
+		memcpy(token_name_arr + token_name_arr_tail, crt_token_name, len);
+
 		TokenItem tmp_token_item(type, token_name_arr + token_name_arr_tail);
 		token_vec.push_back(tmp_token_item);
 		

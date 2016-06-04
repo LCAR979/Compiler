@@ -68,14 +68,14 @@ void Parser::Startup()
 
 	int action, state_goto;
 
-	Item it;
-	it.state = 0;
-	it.attr.type = T_FINAL;
+	Item *it = new Item();
+	it->state = 0;
+	it->attr.token_type = T_FINAL;
 	st.Push(it);
 
-	while (crt_token && st.Top().state != Acc && st.Top().state != Fail)
+	while (crt_token && st.Top()->state != Acc && st.Top()->state != Fail)
 	{
-		action = drive_table_[st.Top().state][crt_token];
+		action = drive_table_[st.Top()->state][crt_token];
 		if (action == Acc)
 		{
 			printf("Acc!\n");
@@ -84,19 +84,22 @@ void Parser::Startup()
 		}
 		if (action == Fail)
 		{
-			it.state = Fail;
-			st.Push(it);
+			Item* it_fail = new Item();
+			it_fail->state = Fail;
+			st.Push(it_fail);
 			fprintf(stderr, "Error parsing grammer file\n");
 			PrintIntercode();
 			break;
 		}
 		if (action > 0)
 		{
-			it.state = action;
-			it.attr.type = token_vec[token_vec_index].type;
-			it.attr.name_addr = token_vec[token_vec_index].val.name_addr;
-			it.attr.int_val = token_vec[token_vec_index].val.int_val;
-			it.attr.real_val = token_vec[token_vec_index].val.real_val;
+			Item* it = new Item();
+			it->state = action;
+			it->attr.token_type = token_vec[token_vec_index].type;
+			if (token_vec[token_vec_index].type == T_ID)
+				it->attr.name_addr = string(token_vec[token_vec_index].val.name_addr);
+			it->attr.int_val = token_vec[token_vec_index].val.int_val;
+			it->attr.real_val = token_vec[token_vec_index].val.real_val;
 			st.Push(it);
 		
 			//printf("Shift in state %d and var %d \n", st.st.Top(), crt_token);
@@ -108,7 +111,8 @@ void Parser::Startup()
 		else if (action < 0 )
 		{			
 			action *= -1;
-			(*production[action].f)(&it);
+			Item* it = new Item();
+			(*production[action].f)(it);
 
 			int tmp = 1;
 			while (production_table_[action][tmp] != 0 && !st.Empty())
@@ -119,17 +123,17 @@ void Parser::Startup()
 
 			fprintf(outfp, "No. %d\t %s \n", action, production[action].description);
 			printf("No. %d\t %s\n", action, production[action].description);
-
-			it.attr.type = (TokenType)production_table_[action][0];	
-			state_goto = drive_table_[st.Top().state][it.attr.type];
-			it.state = state_goto;
+			
+			it->attr.token_type = (TokenType)production_table_[action][0];
+			state_goto = drive_table_[st.Top()->state][it->attr.token_type];
+			it->state = state_goto;
 			if (state_goto == Fail)
 			{
 				ErrorHandle("Trapped in error state \n");
 				break;
 			}			
 			st.Push(it);
-			//printf("Shift in state %d and var %d \n", it.state, it.attr.type);
+			//printf("Shift in state %d and var %d \n", it->state, it->attr.token_type);
 		}
 		else
 		{
@@ -138,4 +142,10 @@ void Parser::Startup()
 		}
 	}
 	fclose(outfp);
+
+	for (int i = 0; st.s[i]!=NULL ; i++)
+	{
+		delete st.s[i];
+		st.s[i] = NULL;
+	}
 }
