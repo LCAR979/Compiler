@@ -12,11 +12,12 @@ class SymTable
 		std::string name;
 		SymType type;
 		int offset;		
-		SymTable* sym_table;
-
 		struct _SymItem* next_symbol;
-		bool is_array;
+
+		//optional
+		SymTable* sym_table;
 		char* array_addr;
+
 		_SymItem(std::string _name, SymType _type, int _offset, SymTable* _sym_table)
 		{
 			name = _name;
@@ -29,16 +30,14 @@ class SymTable
 public:
 	SymTable* prev_sym_table;
 	int offset;
+	string table_name;
 	SymItem* table[kHashTableCapacity];
 
-	SymTable(SymTable* _prev_sym_table);
+	SymTable(SymTable* _prev_sym_table, string _table_name);
 	size_t HashBKDR(string hash_key);
-	bool EnterSymbol(string name, SymType symType, SymTable* _locate_sym_table);
+	bool EnterSymbol(string name, SymType symType, SymTable* sym_table_pointer);
 	bool IsSymbolDefined(string name);
-	bool CanEnterSymbol(string name);
 };
-
-extern SymTable* program_sym_table;
 extern SymTable* crt_sym_table;
 
 

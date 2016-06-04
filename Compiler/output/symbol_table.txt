@@ -1,0 +1,19 @@
+Table test_case, prevTable: NULL
+-------------------------
+Name: a, offset: 0, Type: int
+Name: b, offset: 4, Type: int
+Name: c, offset: 8, Type: real
+Name: ff, offset: 16, Type: symbolTable
+Name: fff, offset: 44, Type: symbolTable
+
+Table ff, prevTable: test_case
+-------------------------
+Name: a, offset: 16, Type: int
+Name: b, offset: 20, Type: int
+Name: c, offset: 24, Type: int
+Name: m, offset: 0, Type: real
+Name: n, offset: 8, Type: real
+
+Table fff, prevTable: test_case
+-------------------------
+Name: mm, offset: 0, Type: real

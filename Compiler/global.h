@@ -55,7 +55,8 @@ typedef enum TokenType
 	V_return_statement, V_variable, V_exp_item, V_bool_exp_item, V_bool_exp,
 	V_expression_list, V_term, V_factor, V_sign, V_relop,
 	V_addop, V_mulop, V_num, V_M_FOR, V_M_quad,
-	V_N_IF, V_M_function, V_M_procedure, V_start,
+	V_N_IF, V_M_function, V_M_procedure, V_N_repeat, V_M_program,
+	V_start,
 }TokenType;
 
 static char* word_list[] = {
@@ -87,8 +88,8 @@ static char* word_list[] = {
 	"return_statement", "variable", "exp_item", "bool_exp_item", "bool_exp",
 	"expression_list", "term", "factor", "sign", "relop",
 	"addop", "mulop", "num", "M_FOR", "M_quad",
-	"N_IF", "M_function", "M_procedure", "start",
-
+	"N_IF", "M_function", "M_procedure", "N_repeat", "M_program",
+	"start",
 };
 
 typedef enum ParserStateType
@@ -272,6 +273,7 @@ char* IntToStr(int i);
 char* RealToStr(double i);
 
 void PrintIntercode();
+void PrintSymTable();
 
 extern int line_number;
 extern bool fatel_error;

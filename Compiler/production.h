@@ -63,7 +63,7 @@ void declaration_identifier(Item* it)
 //type => standard_type;
 void type_standard(Item* it)
 {
-	it->attr.type = st.s[st.top - 2]->attr.type;
+	it->attr.type = st.s[st.top]->attr.type;
 }
 
 //type => T_ARRAY T_LBRKPAR T_INT T_DOUBLE_DOT T_INT T_RBRKPAR T_OF standard_type;
@@ -111,17 +111,11 @@ void subprogram_declaration_head_dec_compound(Item* it)
 	it->attr.nextlist = st.s[st.top]->attr.nextlist;
 }
 
-//subprogram_head => T_FUNCTION M_function T_ID arguments T_COLON standard_type T_SEMICL ;
-void subprogram_head_function(Item* it)		//Todo
-{
-	intercode.code[st.s[st.top - 5]->attr.quad].result = st.s[st.top - 4]->attr.name_addr;
-}
+//subprogram_head => T_FUNCTION T_ID M_function  arguments T_COLON standard_type T_SEMICL ;
+void subprogram_head_function(Item* it)	{}
 
-//subprogram_head => T_PROCEDURE M_procedure T_ID arguments T_SEMICL;
-void subprogram_head_procedure(Item* it)  //Todo
-{
-	intercode.code[st.s[st.top - 3]->attr.quad].result = st.s[st.top - 2]->attr.name_addr;
-}
+//subprogram_head => T_PROCEDURE T_ID M_procedure  arguments T_SEMICL;
+void subprogram_head_procedure(Item* it) {}
 
 //arguments = > T_LPAR parameter_list T_RPAR;
 void arguments_param_list(Item* it){}
@@ -183,6 +177,11 @@ void statement_list_st_list_statement(Item* it)
 //statement => variable T_ASS exp_item;
 void statement_var_assign(Item* it)
 {
+	if (!crt_sym_table->IsSymbolDefined(st.s[st.top - 2]->attr.name_addr))
+	{
+		error_vec.push_back(ErrorItem(0xffffffff, "Undefined variable "));
+		fatel_error = true;
+	}
 	GenCode(CodeLine(F_Z_ASS_X, "", st.s[st.top]->attr.name_addr,
 		"", st.s[st.top - 2]->attr.name_addr ));
 }
@@ -450,20 +449,53 @@ void num_real(Item* it)
 	it->attr.type = (SymType)Real;
 }
 
+//subprogram_head => T_FUNCTION T_ID M_function arguments T_COLON standard_type T_SEMICL |
+
 void M_function(Item* it)
 {
+	string new_sym_table_name = st.s[st.top]->attr.name_addr;
 	it->attr.quad = GetNextQuad();
-	SymTable* new_sym_table = new SymTable(crt_sym_table);
-	crt_sym_table->EnterSymbol("SymTable", (SymType)SymTableType, new_sym_table);
+	SymTable* new_sym_table = new SymTable(crt_sym_table, new_sym_table_name);
+	crt_sym_table->EnterSymbol(new_sym_table_name, (SymType)SymTableType, new_sym_table);
 	crt_sym_table = new_sym_table;
-	GenCode(CodeLine(F_TITLE_FUNC, "", "", "", "-"));
+	GenCode(CodeLine(F_TITLE_FUNC, "", "", "", new_sym_table_name));
 }
+
+//subprogram_head => T_PROCEDURE T_ID M_procedure arguments T_SEMICL;
 void M_procedure(Item* it)
 {
+	string new_sym_table_name = st.s[st.top]->attr.name_addr;
 	it->attr.quad = GetNextQuad();
-	SymTable* new_sym_table = new SymTable(crt_sym_table);
-	crt_sym_table->EnterSymbol("SymTable", (SymType)SymTableType, new_sym_table);
+	SymTable* new_sym_table = new SymTable(crt_sym_table, new_sym_table_name);
+	crt_sym_table->EnterSymbol(new_sym_table_name, (SymType)SymTableType, new_sym_table);
 	crt_sym_table = new_sym_table;
-	GenCode(CodeLine(F_TITLE_PROCEDURE, "", "", "", "-"));
+	GenCode(CodeLine(F_TITLE_PROCEDURE, "", "", "", new_sym_table_name));
+}
+
+//statement => T_REPEAT M_quad statement T_UNTIL N_repeat bool_exp;
+void statement_repeat(Item* it)
+{
+	BackPatch(st.s[st.top]->attr.falselist, st.s[st.top - 4]->attr.quad);
+	it->attr.nextlist = st.s[st.top]->attr.truelist;
+}
+
+//N_repeat = >;
+void N_repeat(Item* it)
+{
+	BackPatch(st.s[st.top-2]->attr.nextlist, GetNextQuad());
+}
+
+/*
+program => T_PROGRAM T_ID M_program T_LPAR identifier_list T_RPAR T_SEMICL
+			   declarations M_quad
+			   subprogram_declarations M_quad
+			   compound_statement T_DOT M_quad;
+*/
+//M_program ->;
+void M_program(Item* it)
+{
+	string new_sym_table_name = st.s[st.top]->attr.name_addr;
+	SymTable* new_sym_table = new SymTable(crt_sym_table, new_sym_table_name);
+	crt_sym_table = new_sym_table;
 }
 #endif 

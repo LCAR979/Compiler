@@ -99,6 +99,7 @@
     <Text Include="output\intercode.txt" />
     <Text Include="output\log.txt" />
     <Text Include="output\reduction.txt" />
+    <Text Include="output\symbol_table.txt" />
     <Text Include="output\token.txt" />
     <Text Include="res\drive_table.txt" />
     <Text Include="res\grammer_number_transed.txt" />

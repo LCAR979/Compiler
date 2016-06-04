@@ -1,5 +1,6 @@
 #include <string.h>
 #include <vector>
+#include <queue>
 #include "global.h"
 #include "production.h"
 #include "translation.h"
@@ -199,5 +200,53 @@ void PrintIntercode()
 	 { 72, "num -> T_REAL", num_real },
 	 { 73, "M_function -> ", M_function },
 	 { 74, "M_procedure -> ", M_procedure },
-
+	 { 75, "statement -> T_REPEAT M_quad statement T_UNTIL N_repeat bool_exp", statement_repeat },
+	 { 76, "N_repeat -> ", N_repeat },
+	 { 77, "M_program -> ", M_program },
  };
+
+ void PrintSymTable()
+ {
+	 FILE* fp = fopen("output\\symbol_table.txt", "w");
+
+	 std::queue<SymTable*> sym_table_queue;
+	 SymTable* sym_table;
+
+	 sym_table_queue.push(crt_sym_table);
+	 while (!sym_table_queue.empty())
+	 {
+		 sym_table = sym_table_queue.front();
+		 if (sym_table->prev_sym_table == NULL)
+			 fprintf(fp, "Table %s, prevTable: NULL\n-------------------------\n",
+			 sym_table->table_name.c_str());
+		 else
+		 {
+			 fprintf(fp, "\nTable %s, prevTable: %s\n-------------------------\n", 
+				 sym_table->table_name.c_str(),
+				 sym_table->prev_sym_table->table_name.c_str());
+		 }
+		 for (int i = 0; i < kHashTableCapacity; i++)
+		 {			 
+			 if (sym_table->table[i] != 0)
+			 {
+				 fprintf(fp, "Name: %s, offset: %d, Type: ",
+					 sym_table->table[i]->name.c_str(), sym_table->table[i]->offset);
+
+				 switch (sym_table->table[i]->type)
+				 {
+				 case Int:
+					 fprintf(fp, "int\n");
+					 break;
+				 case Real:
+					 fprintf(fp, "real\n");
+					 break;
+				 case SymTableType:
+					 sym_table_queue.push(sym_table->table[i]->sym_table);
+					 fprintf(fp, "symbolTable\n");
+					 break;					
+				 }
+			 }
+		 }
+		 sym_table_queue.pop();
+	 } 
+ }

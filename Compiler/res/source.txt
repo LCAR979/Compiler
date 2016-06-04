@@ -4,13 +4,16 @@ program test_case (var1, var2, var3);
 	function ff (m,n:real; a,b,c:integer) : real;
 		begin
 			while m < 5 do
-				m := m + 1			
+				mxyz := m + 1			
 		end;
 	procedure fff (mm: real);
 		begin
 			mm := 4;
 			for mm := 1 to 5 do
+				mm := mm * 2;
+			repeat 
 				mm := mm * 2
+			until mm > 20
 		end;
 	begin
 		ff(m, n, a, b, c);		

@@ -12,29 +12,50 @@ size_t SymTable::HashBKDR(string hash_key)
 	return (hash & 0x7fffffff) % kHashTableCapacity;
 }
 
-SymTable::SymTable(SymTable* _prev_sym_table)
+SymTable::SymTable(SymTable* _prev_sym_table, string _table_name)
 {
 	prev_sym_table = _prev_sym_table;
+	table_name = _table_name;
 	offset = 0;
-	memset(table, 0, sizeof(table));
+	for (int i = 0; i < kHashTableCapacity; i++)
+	{
+		this->table[i] = NULL;
+	}
 }
 
-bool SymTable::EnterSymbol(string name, SymType symType, SymTable* _locate_sym_table)
+bool SymTable::EnterSymbol(string name, SymType symType, SymTable* stm_table_pointer)
 {
-	if (CanEnterSymbol(name))
+	size_t index = HashBKDR(name);
+
+	for (SymItem* sym_item = table[index]; sym_item != NULL; sym_item = sym_item->next_symbol)
 	{
-		size_t index = HashBKDR(name);
-		if (table[index] == NULL)
-			table[index] = new SymItem(name, symType, this->offset, _locate_sym_table);
-		else
+		if (sym_item->name == name)
 		{
-			SymItem* sym = new SymItem(name, symType, this->offset, _locate_sym_table);
-			sym->next_symbol = table[index];
-			table[index] = sym;
+			return false;
 		}
-		return true;
 	}
-	return false;
+
+	if (table[index] == NULL)
+		table[index] = new SymItem(name, symType, this->offset, stm_table_pointer);
+	else
+	{
+		SymItem* sym = new SymItem(name, symType, this->offset, stm_table_pointer);
+		sym->next_symbol = table[index];
+		table[index] = sym;
+	}
+	switch (symType)
+	{
+	case Int:
+		offset += 4;
+		break;
+	case Real:
+		offset += 8;
+		break;
+	case SymTableType:
+		break;
+	}
+	return true;
+
 }
 
 
@@ -54,18 +75,5 @@ bool SymTable::IsSymbolDefined(string name)
 	return false;
 }
 
-bool SymTable::CanEnterSymbol(string name)
-{
-	size_t index = HashBKDR(name);
-	for (SymItem* sym_item = table[index]; sym_item != NULL; sym_item = sym_item->next_symbol)
-	{
-		if (sym_item->name == name)
-		{
-			return false;
-		}
-	}
-	return true;
-}
 
-SymTable* program_sym_table = new SymTable(NULL);
-SymTable* crt_sym_table = program_sym_table;
+SymTable* crt_sym_table;

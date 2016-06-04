@@ -93,15 +93,3 @@ void BackPatch(BackpatchListItem* p, int i)
 }
 
 
-void statement_assign(Item* it)
-{
-	it->attr.nextlist = NULL;
-}
-
-void slist_slist_quad_s(Item * it)
-{
-	BackPatch(st.s[st.top - 3]->attr.nextlist, st.s[st.top - 1]->attr.quad);
-	it->attr.nextlist = st.s[st.top]->attr.nextlist;
-}
-
-

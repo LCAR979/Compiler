@@ -14,5 +14,8 @@ int main()
 	parser.Init();
 	parser.Startup();
 
+
+	ErrorPrint();
+
 	return 0;
 }

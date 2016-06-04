@@ -73,13 +73,14 @@ void Parser::Startup()
 	it->attr.token_type = T_FINAL;
 	st.Push(it);
 
-	while (crt_token && st.Top()->state != Acc && st.Top()->state != Fail)
+	while (crt_token && st.Top()->state != Acc && st.Top()->state != Fail && !fatel_error)
 	{
 		action = drive_table_[st.Top()->state][crt_token];
 		if (action == Acc)
 		{
 			printf("Acc!\n");
 			PrintIntercode();
+			PrintSymTable();
 			break;
 		}
 		if (action == Fail)
@@ -89,6 +90,7 @@ void Parser::Startup()
 			st.Push(it_fail);
 			fprintf(stderr, "Error parsing grammer file\n");
 			PrintIntercode();
+			PrintSymTable();
 			break;
 		}
 		if (action > 0)
