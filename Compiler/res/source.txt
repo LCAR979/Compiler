@@ -4,7 +4,7 @@ program test_case (var1, var2, var3);
 	function ff (m,n:real; a,b,c:integer) : real;
 		begin
 			while m < 5 do
-				mxyz := m + 1			
+				m := m + 1			
 		end;
 	procedure fff (mm: real);
 		begin

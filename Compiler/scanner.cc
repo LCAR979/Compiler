@@ -45,14 +45,6 @@ void Scanner::DealReal(double real_val)
 	token_vec.push_back(TokenItem(T_REAL, real_val));
 }
 
-//int* Scanner::InstallID(char* crt_token_name, TokenType type)
-//{
-//	token_name_arr[token_name_arr_tail++] = '\0';
-//	SymbolItem* symbol_item = new SymbolItem(crt_token_name, type);
-//	symbol_table.Insert(symbol_item->name, symbol_item);
-//	return (int*)symbol_table.FindAddr(crt_token_name);
-//}
-
 void Scanner::DealToken(TokenType type)
 {
 	char crt_token_name[kTokenMaxLen];
@@ -77,7 +69,6 @@ void Scanner::DealToken(TokenType type)
 		
 		token_name_arr_tail += strlen(crt_token_name);
 		token_name_arr[token_name_arr_tail++] = '\0';
-		//int* addr = InstallID(crt_token_name, type);
 	}
 	else
 	{
@@ -120,7 +111,7 @@ void Scanner::Close()
 {
 	printf("Scanning finished\n");
 	fclose(fp_);
-	//PrintTokenList();
+	PrintTokenList();
 }
 
 void Scanner::ScanIdnAndKWord()
@@ -459,9 +450,19 @@ void Scanner::ScanToken()
 
 void Scanner::PrintTokenList()
 {
-	FILE* log_fp = fopen("output\\log.txt", "w");
+	FILE* log_fp = fopen("output\\token.txt", "w");
 	std::vector<TokenItem>::iterator it;
 	for (it = token_vec.begin(); it != token_vec.end(); it++)
-		fprintf(log_fp, "%d, %s\n", it->type, (it->val).name_addr);
+	{
+		if (it->type == T_INT)
+			fprintf(log_fp, "(%d, %d)\n", it->type, (it->val).int_val);
+		else if (it->type == T_REAL)
+			fprintf(log_fp, "(%d, %f)\n", it->type, (it->val).real_val);
+		else if (it->type == T_ID)
+			fprintf(log_fp, "(%d, %s)\n", it->type, (it->val).name_addr);
+		else
+			fprintf(log_fp, "(%d, -)\n", it->type);
+	}
+		
 	fclose(log_fp);
 }

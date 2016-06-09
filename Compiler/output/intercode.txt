@@ -1,39 +1,39 @@
-0	(        ,         ,         ,       ff)			FUNC ff
-1	(       <,        m,        5,        3)			if m < 5 then goto 3
-2	(        ,         ,         ,        7)			goto 7
-3	(       +,        m,        1,       t0)			t0 := m + 1
-4	(        ,       t0,         ,        m)			m := t0
-5	(        ,         ,         ,        1)			goto 1
-6	(     ret,         ,         ,         )			RET
-7	(        ,         ,         ,      fff)			PROC fff
-8	(        ,        4,         ,       mm)			mm := 4
-9	(        ,        1,         ,       mm)			mm := 1
-10	(        ,        5,         ,       t1)			t1 := 5
-11	(        ,         ,         ,       13)			goto 13
-12	(       +,       mm,        1,       mm)			mm := mm + 1
-13	(       >,       mm,       t1,       17)			if mm > t1 then goto 17
-14	(       *,       mm,        2,       t2)			t2 := mm * 2
-15	(        ,       t2,         ,       mm)			mm := t2
-16	(        ,         ,         ,       12)			goto 12
-17	(       *,       mm,        2,       t3)			t3 := mm * 2
-18	(        ,       t3,         ,       mm)			mm := t3
-19	(       >,       mm,       20,       22)			if mm > 20 then goto 22
-20	(        ,         ,         ,       17)			goto 17
-21	(     ret,         ,         ,         )			RET
-22	(        ,        m,         ,         )			param m
-23	(        ,        n,         ,         )			param n
-24	(        ,        a,         ,         )			param a
-25	(        ,        b,         ,         )			param b
-26	(        ,        c,         ,         )			param c
-27	(        ,       ff,        5,         )			call ff 5
-28	(       =,        c,        1,       30)			if c = 1 then goto 30
-29	(        ,         ,         ,       35)			goto 35
-30	(       *,        b,        c,       t4)			t4 := b * c
-31	(     div,       t4,        b,       t5)			t5 := t4 div b
-32	(       +,        a,       t5,       t6)			t6 := a + t5
-33	(        ,       t6,         ,        c)			c := t6
-34	(        ,         ,         ,       37)			goto 37
-35	(       *,        a,        d,       t7)			t7 := a * d
-36	(        ,       t7,         ,        c)			c := t7
-37	(        ,       mm,         ,         )			param mm
-38	(        ,      fff,        1,         )			call fff 1
+0	(     ,      ,      ,    ff)		FUNC ff
+1	(    <,     m,     5,     3)		if m < 5 then goto 3
+2	(     ,      ,      ,     7)		goto 7
+3	(    +,     m,     1,    t0)		t0 := m + 1
+4	(     ,    t0,      ,     m)		m := t0
+5	(     ,      ,      ,     1)		goto 1
+6	(  ret,      ,      ,      )		RET
+7	(     ,      ,      ,   fff)		PROC fff
+8	(     ,     4,      ,    mm)		mm := 4
+9	(     ,     1,      ,    mm)		mm := 1
+10	(     ,     5,      ,    t1)		t1 := 5
+11	(     ,      ,      ,    13)		goto 13
+12	(    +,    mm,     1,    mm)		mm := mm + 1
+13	(    >,    mm,    t1,    17)		if mm > t1 then goto 17
+14	(    *,    mm,     2,    t2)		t2 := mm * 2
+15	(     ,    t2,      ,    mm)		mm := t2
+16	(     ,      ,      ,    12)		goto 12
+17	(    *,    mm,     2,    t3)		t3 := mm * 2
+18	(     ,    t3,      ,    mm)		mm := t3
+19	(    >,    mm,    20,    22)		if mm > 20 then goto 22
+20	(     ,      ,      ,    17)		goto 17
+21	(  ret,      ,      ,      )		RET
+22	(     ,     m,      ,      )		param m
+23	(     ,     n,      ,      )		param n
+24	(     ,     a,      ,      )		param a
+25	(     ,     b,      ,      )		param b
+26	(     ,     c,      ,      )		param c
+27	(     ,    ff,     5,      )		call ff 5
+28	(    =,     c,     1,    30)		if c = 1 then goto 30
+29	(     ,      ,      ,    35)		goto 35
+30	(    *,     b,     c,    t4)		t4 := b * c
+31	(  div,    t4,     b,    t5)		t5 := t4 div b
+32	(    +,     a,    t5,    t6)		t6 := a + t5
+33	(     ,    t6,      ,     c)		c := t6
+34	(     ,      ,      ,    37)		goto 37
+35	(    *,     a,     d,    t7)		t7 := a * d
+36	(     ,    t7,      ,     c)		c := t7
+37	(     ,    mm,      ,      )		param mm
+38	(     ,   fff,     1,      )		call fff 1

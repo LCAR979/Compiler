@@ -75,7 +75,7 @@ static char* word_list[] = {
 	",", ":", ";", "/", "!", "?",						//6, 14
 	//T_SHARP, T_DOT, T_CONT, T_LPAR, T_RPAR, T_LBRKPAR, T_RBRKPAR, T_ASS, T_DOUBLE_DOT,
 	"#", ".", "&", "(", ")", "[", "]", ":=", "..",		//9, 20
-	//T_INT, T_REAL, T_TRUE, T_FLASE, T_ID, T_STR, T_FINAL
+	//T_INT, T_REAL, T_ID, T_STR, T_FINAL
 	"int_num", "real_num", 
 	
 	"id", "string", 	
@@ -236,6 +236,16 @@ typedef struct _Code
 	}
 }Code;
 
+typedef struct _Production
+{
+	int left;
+	char description[200];
+	void(*f)(Item *);
+}Production;
+
+extern Production production[];
+
+
 bool static IsHex(char ch)
 {
 	if ((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f') || (ch >= 'A' && ch <= 'F'))
@@ -289,17 +299,5 @@ extern vector<ErrorItem> error_vec;
 extern GeneralStack<Item*> st;
 
 extern Code intercode;
-
-typedef struct _Production
-{
-	int left;
-	char description[200];
-	void(*f)(Item *);
-}Production;
-
-extern Production production[];
-
-
-
 
 #endif

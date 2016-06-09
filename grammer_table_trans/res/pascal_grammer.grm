@@ -1,0 +1,196 @@
+[非终结符]
+	program 
+	subprogram_declarations
+	identifier_list 
+	declarations 
+	declaration 
+	type 
+	standard_type
+	subprogram_declaration
+	subprogram_head 
+	arguments 
+	parameter_list
+	optional_statements 
+	statement_list 
+	statement
+	procedure_statement
+	compound_statement
+	return_statement
+ 	variable 
+	exp_item
+	bool_exp_item
+	bool_exp
+	expression_list
+	term 
+	factor 
+	sign
+	relop 
+	addop 
+	mulop
+	num 
+	M_FOR
+	M_quad
+	N_IF
+	M_function
+	M_procedure
+	N_repeat
+	M_program
+[终结符]	 
+T_AND
+T_ARRAY
+T_BEGIN
+T_CASE
+T_CONST
+T_DIV
+T_DO
+T_DOWNTO
+T_ELSE
+T_END
+T_FILE
+T_FOR
+T_FUNCTION
+T_GOTO
+T_IF
+T_IN
+T_LABEL
+T_MOD
+T_NIL
+T_NOT
+T_OF
+T_OR
+T_PACKED
+T_PROCEDURE
+T_PROGRAM
+T_RECORD
+T_REPEAT
+T_SET
+T_THEN
+T_TO
+T_TYPE
+T_UNTIL
+T_VAR
+T_WHILE
+T_WITH
+T_INT_TYPE
+T_REAL_TYPE
+T_TRUE
+T_FLASE
+T_ADD
+T_SUB
+T_MUL
+T_ADDE
+T_SUBE
+T_MULE
+T_DIVE
+T_POW
+T_EQL
+T_NEQ
+T_GT
+T_GTE
+T_LT
+T_LTE
+T_COMMA
+T_COLON
+T_SEMICL
+T_SLASH
+T_EXC
+T_QUESTION
+T_SHARP
+T_DOT
+T_CONT
+T_LPAR
+T_RPAR
+T_LBRKPAR
+T_RBRKPAR
+T_ASS
+T_DOUBLE_DOT
+T_INT
+T_REAL
+T_ID
+T_STR
+[文法起始符]
+	start
+[生成式]
+	start => program ;
+	program => T_PROGRAM T_ID M_program T_LPAR identifier_list T_RPAR T_SEMICL
+			   declarations M_quad
+			   subprogram_declarations M_quad
+			   compound_statement T_DOT M_quad;
+	identifier_list => T_ID | identifier_list T_COMMA T_ID ;
+	declarations => T_VAR declaration T_SEMICL | ;
+	declaration => declaration T_SEMICL identifier_list T_COLON type |
+				   identifier_list T_COLON type ;
+	type => standard_type |
+			T_ARRAY T_LBRKPAR T_INT T_DOUBLE_DOT T_INT T_RBRKPAR T_OF standard_type ;
+	standard_type => T_INT_TYPE | T_REAL_TYPE ;
+	subprogram_declarations => subprogram_declarations M_quad
+							   subprogram_declaration T_SEMICL | ;
+	subprogram_declaration => subprogram_head
+							  declarations
+							  compound_statement ;
+	subprogram_head => T_FUNCTION  T_ID  M_function arguments T_COLON standard_type T_SEMICL |
+					   T_PROCEDURE T_ID M_procedure arguments T_SEMICL ;
+	arguments => T_LPAR parameter_list T_RPAR | ;
+	parameter_list => identifier_list T_COLON type |
+					  parameter_list T_SEMICL identifier_list T_COLON type ;
+					  
+	compound_statement => T_BEGIN optional_statements T_END ;
+	optional_statements => statement_list | ;
+	
+	statement_list => statement;
+	statement_list => statement_list T_SEMICL M_quad statement ;
+	
+	statement => variable T_ASS exp_item;
+	statement => procedure_statement;		 
+	statement => compound_statement;	
+
+	statement => T_IF bool_exp T_THEN M_quad statement T_SEMICL;
+	statement => T_IF bool_exp T_THEN M_quad statement T_ELSE N_IF M_quad statement;
+	N_IF => ;
+	M_quad => ;
+	statement => T_WHILE M_quad bool_exp T_DO M_quad statement ;
+	statement => T_FOR variable M_quad T_ASS exp_item T_TO exp_item T_DO M_FOR statement;
+	
+	M_FOR => ;
+
+	bool_exp => bool_exp_item T_OR M_quad bool_exp;
+	bool_exp => bool_exp_item T_AND M_quad bool_exp;
+	bool_exp => T_NOT bool_exp;
+	bool_exp => T_LPAR bool_exp T_RPAR;
+	bool_exp => bool_exp_item;
+	
+	bool_exp_item => exp_item relop exp_item;
+	bool_exp_item => T_TRUE;
+	bool_exp_item => T_FLASE;
+	
+
+	variable => T_ID | T_ID T_LBRKPAR exp_item T_RBRKPAR ;
+	procedure_statement => T_ID T_LPAR T_RPAR | T_ID T_LPAR expression_list T_RPAR ;
+	
+	expression_list => exp_item | expression_list T_COMMA exp_item ;
+	
+	exp_item => term | sign term |
+						 exp_item addop term ;
+	term => factor | term mulop factor ;
+	factor => T_ID | T_ID T_LPAR expression_list T_RPAR | num | T_LPAR exp_item T_RPAR  ;
+	
+	sign => T_ADD;
+	sign => T_SUB;
+	addop => T_ADD;
+	addop => T_SUB;
+	mulop => T_MUL;
+	mulop => T_DIV;
+	relop => T_EQL;
+	relop => T_NEQ;
+	relop => T_GT;
+	relop => T_GTE;
+	relop => T_LT;
+	relop => T_LTE;
+	num => T_INT;
+	num => T_REAL;
+	M_function => ;
+	M_procedure => ;
+	
+	statement => T_REPEAT M_quad statement T_UNTIL N_repeat bool_exp;
+	N_repeat => ;
+	M_program => ;

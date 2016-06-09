@@ -14,7 +14,6 @@ std::map<std::string, int> keyword_table;
 char token_name_arr[kTokenNameArrLen];
 int token_name_arr_tail = 0;
 
-
 std::vector<TokenItem> token_vec;
 std::vector<ErrorItem> error_vec;
 GeneralStack<Item*> st;
@@ -78,7 +77,7 @@ void PrintIntercode()
 	for (it = intercode.code.begin(); it != intercode.code.end(); it++)
 	{
 		fprintf(fp, "%d\t", line_count++);
-		fprintf(fp, "(%8s, %8s, %8s, %8s)\t\t\t", it->op.c_str(), it->arg1.c_str(),
+		fprintf(fp, "(%5s, %5s, %5s, %5s)\t\t", it->op.c_str(), it->arg1.c_str(),
 			it->arg2.c_str(), it->result.c_str());
 		switch (it->fmt)
 		{
